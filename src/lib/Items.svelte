@@ -20,6 +20,7 @@
   //})
 </script>
 
+<h1>Items</h1>
 
 <form on:submit|preventDefault={addItem}>
   <input type="text" placeholder="Enter item name" id="add-item" bind:value={newItem} />
@@ -30,3 +31,5 @@
   <li>{item.text}</li>
 {/each}
 </ul>
+
+<a href="/bingo">Start game</a>
