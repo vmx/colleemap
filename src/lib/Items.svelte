@@ -18,6 +18,8 @@
   //afterUpdate(() => {
   //  document.querySelector('#add-item')
   //})
+
+//GO ON HERE and use a proper store
 </script>
 
 <h1>Items</h1>
