@@ -15,9 +15,11 @@
   //  })
   //}
 
+  // Returns the route where to go next
   const parseData = async (data) => {
-    const type = data[0]
-    const sdp = data.substr(1)
+    const [offerOrAnswer, ...iceCandidates] = JSON.parse(data)
+    const type = offerOrAnswer[0]
+    const sdp = offerOrAnswer.substr(1)
 
     switch (type) {
       case 'O':
@@ -26,12 +28,32 @@
           type: "offer",
           sdp
         })
-        // TODO vmx 2022-09-22: see if there's a svelter way to do it.
-        router.goto('/answer')
-        break
+
+        iceCandidates.forEach(async (iceCandidate) => {
+          console.log('about to add ice candidate:', iceCandidate)
+          await connection.addIceCandidate(iceCandidate)
+          //await connection.addIceCandidate('foobarbaz')
+          //const candidate = new RTCIceCandidate(iceCandidate)
+          //await connection.addIceCandidate(candidate)
+        })
+        await connection.addIceCandidate({candidate:''})
+
+        return '/answer'
       case 'A':
-        await acceptAnswer(sdp)
-        break
+        // TODO vmx 2022-09-22: check if the remove discription is already set
+        // via `connection.currentRemoteDescription`.
+        await connection.setRemoteDescription({
+          type: "answer",
+          sdp
+        })
+
+        iceCandidates.forEach(async (iceCandidate) => {
+          console.log('about to add ice candidate:', iceCandidate)
+          await connection.addIceCandidate(iceCandidate)
+        })
+        await connection.addIceCandidate({candidate:''})
+
+        return '/connected'
       default:
         console.log('Cannot parse QR Code.')
     }
@@ -43,10 +65,16 @@
   onMount(async () => {
     const qrScanner = new QrScanner(
       video,
-      (result) => {
+      async (result) => {
+        qrScanner.stop()
         console.log('decoded QR Code is:', result)
-        parseData(result.data)
-        // TODO vmx 2022-09-21: destroy qr code scanner when read correctly
+        const goto = await parseData(result.data)
+        if (goto === undefined) {
+          qrScanner.start()
+        } else {
+          qrScanner.destroy()
+          router.goto(goto)
+        }
       },
       {
         highlightScanRegion: true,

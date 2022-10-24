@@ -3,12 +3,38 @@
 
   export let connection
 
+  const waitForIceCandidates = () => {
+    return new Promise((resolve, _reject) => {
+      const candidates = []
+      connection.addEventListener("icecandidate", (event) => {
+        //if (event.candidate !== null) {
+        //  if (event.candidate.candidate !== '') {
+        //    candidates.push(event.candidate.toJSON())
+        //  }
+        //} else {
+        //  resolve(candidates)
+        //}
+        if (event.candidate && event.candidate.candidate) {
+          candidates.push(event.candidate.toJSON())
+        } else {
+          resolve(candidates)
+        }
+      })
+    })
+  }
+
   let data = (async () => {
     const offer = await connection.createOffer()
     console.assert(offer.type === 'offer', 'SDP type is an offer')
     await connection.setLocalDescription(offer)
+    const iceCandidates = await waitForIceCandidates()
+    //console.log('vmx: icecandidate:', iceCandidates.map((candidate) => candidate.toJSON()))
+    console.log('vmx: icecandidate:', iceCandidates)
     // Prefix the SDP with the type. Use a single letter, `O` for offer.
-    return 'O' + offer.sdp
+    const sdp = 'O' + offer.sdp
+    const foo = [sdp, ...iceCandidates]
+    console.log('qr code data:', JSON.stringify(foo))
+    return JSON.stringify([sdp, ...iceCandidates])
   })()
 
 
@@ -27,6 +53,8 @@
   <QR text={resolved} level="L" />
 {/await}
 </div>
+
+<a href="/scan">Scan answer</a>
 
 <style>
   .qrcode {

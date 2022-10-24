@@ -4,13 +4,31 @@
 
   export let connection
 
+  const waitForIceCandidates = () => {
+    return new Promise((resolve, _reject) => {
+      const candidates = []
+      connection.addEventListener("icecandidate", (event) => {
+        console.log('vmx: icecandidates event:', event)
+        if (event.candidate && event.candidate.candidate) {
+          candidates.push(event.candidate.toJSON())
+        } else {
+          resolve(candidates)
+        }
+      })
+    })
+  }
 
   let data = (async () => {
     const answer = await connection.createAnswer()
     console.log('answer:', answer)
     await connection.setLocalDescription(answer)
-    // Prefix the SDP with the type. Use a single letter, `O` for offer.
-    return 'A' + answer.sdp
+    const iceCandidates = await waitForIceCandidates()
+    console.log('vmx: icecandidate:', iceCandidates)
+    // Prefix the SDP with the type. Use a single letter, `A` for answer.
+    const sdp = 'A' + answer.sdp
+    const foo = [sdp, ...iceCandidates]
+    console.log('qr code data:', JSON.stringify(foo))
+    return JSON.stringify([sdp, ...iceCandidates])
   })()
 
 
@@ -24,7 +42,7 @@
   <QR text={data} level="L" />
   -->
 {#await data}
-  Waiting for WebRTC offer.
+  Waiting for WebRTC answer.
 {:then resolved}
   <QR text={resolved} level="L" />
 {/await}
