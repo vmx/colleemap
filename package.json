@@ -17,7 +17,12 @@
     "vite": "^3.0.7"
   },
   "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^6.1.0",
+    "@libp2p/interface-transport": "^2.1.1",
+    "@libp2p/webrtc": "file:/home/vmx/src/js/webrtc/js-libp2p-webrtc",
     "@multiformats/multiaddr": "^11.0.7",
+    "ipfs-core": "^0.18.0",
+    "libp2p": "^0.42.2",
     "multiformats": "^10.0.2",
     "qr-scanner": "^1.4.1",
     "svelte-qr": "^1.0.0"
