@@ -5,12 +5,12 @@
   import { base64url } from "multiformats/bases/base64"
   import * as digest from 'multiformats/hashes/digest'
   import { multiaddr } from '@multiformats/multiaddr'
+  import { peerIdFromString } from '@libp2p/peer-id'
   import QrScanner from 'qr-scanner'
   import QR from 'svelte-qr'
   import { router } from 'tinro'
 
   export let ipfsNode
-  export let type
 
   // Multiaddress protocol used to transmit custom information.
   const MEMORY = 777
@@ -34,6 +34,7 @@
     return new Promise((resolve, _reject) => {
       const interval = setInterval(async () => {
         const peerIds = await peer.pubsub.peers(topic)
+        console.log('vmx: peerIds:', peerIds)
         if (peerIds.length >= numPeers) {
           resolve(peerIds.length)
           clearInterval(interval)
@@ -69,7 +70,6 @@
   }
 
   onMount(async () => {
-    console.log('vmx: type is:', type);
     const qrScanner = new QrScanner(
       video,
       async (result) => {
@@ -96,6 +96,11 @@
 
   // The QR-code part
 
+  const onMessage = (message) => {
+    console.log('vmx: message received:', new TextDecoder().decode(message.data))
+  }
+
+
   let connect = async () => {
     //// Try to connect over the initiator connection.
     //const remoteAnswer = await mungedAnswer(parsed.receiverAddresses)
@@ -118,33 +123,86 @@
     //  return ipfsNode.swarm.connect(address)
     //})
     //await Promise.all(dials)
-    if (type === 'initiator') {
-      const addresses = parsed.filter((address) => {
-        return address.stringTuples().some(([protocol, value]) => {
-          return protocol == MEMORY && value === 'initiator'
-        })
-      })
-      console.log('initiator addresses:', addresses.map((address) => {
-        address.toString()
-      }))
-      await ipfsNode.swarm.connect(addresses[0])
-    } else {
-      const addresses = parsed.filter((address) => {
-        return address.stringTuples().some(([protocol, value]) => {
-          return protocol == MEMORY && value === 'receiver'
-        })
-      })
-      console.log('receiver addresses:', addresses.map((address) => {
-        address.toString()
-      }))
-      await ipfsNode.swarm.connect(addresses[0])
-    }
+
+    //if (type === 'initiator') {
+    //  const addresses = parsed.filter((address) => {
+    //    return address.stringTuples().some(([protocol, value]) => {
+    //      return protocol == MEMORY && value === 'initiator'
+    //    })
+    //  })
+    //  console.log('initiator addresses:', addresses.map((address) => {
+    //    address.toString()
+    //  }))
+    //  await ipfsNode.swarm.connect(addresses[0])
+    //} else {
+    //  const addresses = parsed.filter((address) => {
+    //    return address.stringTuples().some(([protocol, value]) => {
+    //      return protocol == MEMORY && value === 'receiver'
+    //    })
+    //  })
+    //  console.log('receiver addresses:', addresses.map((address) => {
+    //    address.toString()
+    //  }))
+    //  await ipfsNode.swarm.connect(addresses[0])
+    //}
+
+    //const dials = []
+    const initiatorAddresses = parsed.filter((address) => {
+     return address.stringTuples().some(([protocol, value]) => {
+       return protocol == MEMORY && value === 'initiator'
+     })
+    })
+    //console.log('initiator addresses:', initiatorAddresses.map((address) => {
+    //  return address.toString()
+    //}))
+    //const initiatorDial = ipfsNode.swarm.connect(initiatorAddresses[0])
+    //dials.push(initiatorDial)
+    //
+    const receiverAddresses = parsed.filter((address) => {
+     return address.stringTuples().some(([protocol, value]) => {
+       return protocol == MEMORY && value === 'receiver'
+     })
+    })
+    //console.log('receiver addresses:', receiverAddresses.map((address) => {
+    //  return address.toString()
+    //}))
+    //const receiverDial = ipfsNode.swarm.connect(receiverAddresses[0])
+    //dials.push(receiverDial)
+    //
+    //try {
+    ////const dialResult = await Promise.all(dials)
+    ////console.log('vmx: dialResult:', dialResult)
+    //for (const dial of dials) {
+    //  console.log('vmx: awaiting dial:', dial)
+    //  await dial
+    //}
+    //} catch (error) {
+    //  console.log('errrrror:', error)
+    //  throw err
+    //}
+
+    const addresses = parsed
+    //const addresses = [initiatorAddresses[0], receiverAddresses[0]]
+//console.log('vmx: address book:', ipfsDialer.libp2p.peerStore.addressBook)
+    const toDialPeerId = peerIdFromString(addresses[0].getPeerId())
+    console.log('vmx: toDialPeerId:', toDialPeerId)
+    await ipfsNode.libp2p.peerStore.addressBook.add(toDialPeerId, addresses)
+    const connection = ipfsNode.swarm.connect(toDialPeerId)
+    await connection
+
+
+
+
+    //await ipfsNode.pubsub.subscribe(TOPIC, onMessage)
+    //console.log('vmx: subscribed to:', TOPIC)
 
     scanState = "connected"
   }
 
   let sendPing = async () => {
-    await waitForPeersSubscribed(ipfsNode, 1, TOPIC);
+    console.log('vmx: trying to ping to')
+    const numPeers = await waitForPeersSubscribed(ipfsNode, 1, TOPIC)
+    console.log('vmx: waited for subscribed peers complete:', numPeers)
 
     const message = new TextEncoder().encode('sending a ping.')
     ipfsNode.pubsub.publish(TOPIC, message)

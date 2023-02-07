@@ -64,10 +64,12 @@
       transportManager: {
         faultTolerance: FaultTolerance.NO_FATAL
       },
-      pubsub: new gossipsub()
+      pubsub: new gossipsub(),
+      connectionManager: {
+        autoDial: true
+      }
     })
   }
-
 
   // The idea of the init function is based on
   // https://stackoverflow.com/questions/73940340/use-promise-result-for-binding/73940618#73940618
@@ -104,7 +106,7 @@
   <!--<Route path="/items"><Items /></Route>-->
   <!--<Route path="/bingo"><Bingo /></Route>-->
   <!--<Route path="/offer"><Offer {connection}/></Route>-->
-  <Route path="/scan/:type" let:meta><Scan { ipfsNode } type={ meta.params.type }/></Route>
+  <Route path="/scan"><Scan { ipfsNode } /></Route>
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <!--<Route path="/connected"><Connected {connection}/></Route>-->
 {/await}
