@@ -181,28 +181,42 @@
     //  throw err
     //}
 
-    const addresses = parsed
-    //const addresses = [initiatorAddresses[0], receiverAddresses[0]]
+   // This seems to work, let's see if there's a better way.
+   const addresses = parsed
+   //const addresses = [initiatorAddresses[0], receiverAddresses[0]]
 //console.log('vmx: address book:', ipfsDialer.libp2p.peerStore.addressBook)
-    const toDialPeerId = peerIdFromString(addresses[0].getPeerId())
-    console.log('vmx: toDialPeerId:', toDialPeerId)
-    await ipfsNode.libp2p.peerStore.addressBook.add(toDialPeerId, addresses)
-    const connection = ipfsNode.swarm.connect(toDialPeerId)
-    await connection
+   const toDialPeerId = peerIdFromString(addresses[0].getPeerId())
+   console.log('vmx: toDialPeerId:', toDialPeerId)
+   await ipfsNode.libp2p.peerStore.addressBook.add(toDialPeerId, addresses)
+   const connection = ipfsNode.swarm.connect(toDialPeerId)
+   await connection
 
 
+    //// No idea why this doesn't work.
+    //const dials = []
+    //for (const address of parsed) {
+    //  console.log('vmx: trying to connect to:', address)
+    //  const dial = ipfsNode.swarm.connect(address)
+    //  dials.push(dial)
+    //}
+    //console.log('vmx: waiting for all dials:', dials)
+    //const dialResult = await Promise.any(dials)
+    //console.log('vmx: waiting for all dials:', dialResult)
 
 
     //await ipfsNode.pubsub.subscribe(TOPIC, onMessage)
     //console.log('vmx: subscribed to:', TOPIC)
+
+    const numPeers = await waitForPeersSubscribed(ipfsNode, 1, TOPIC)
+    console.log('vmx: waited for subscribed peers complete:', numPeers)
 
     scanState = "connected"
   }
 
   let sendPing = async () => {
     console.log('vmx: trying to ping to')
-    const numPeers = await waitForPeersSubscribed(ipfsNode, 1, TOPIC)
-    console.log('vmx: waited for subscribed peers complete:', numPeers)
+    //const numPeers = await waitForPeersSubscribed(ipfsNode, 1, TOPIC)
+    //console.log('vmx: waited for subscribed peers complete:', numPeers)
 
     const message = new TextEncoder().encode('sending a ping.')
     ipfsNode.pubsub.publish(TOPIC, message)
