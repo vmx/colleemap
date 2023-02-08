@@ -96,116 +96,14 @@
 
   // The QR-code part
 
-  const onMessage = (message) => {
-    console.log('vmx: message received:', new TextDecoder().decode(message.data))
-  }
-
-
   let connect = async () => {
-    //// Try to connect over the initiator connection.
-    //const remoteAnswer = await mungedAnswer(parsed.receiverAddresses)
-    //await initiator.connection.setRemoteDescription(remoteAnswer)
-    //
-    //// Try to connect over the receiver connection.
-    //const offer = await mungedOffer(parsed.initiatorAddresses)
-    //await receiver.connection.setRemoteDescription(offer)
-    //await receiver.connection.createAnswer()
-    //// TODO vmx 2022-01-06: Check if munging here is really needed.
-    //const localAnswer = await mungedAnswer(receiverAddresses)
-    //await receiver.connection.setLocalDescription(localAnswer)
-
-    //for (const address of parsed) {
-    //  console.log('trying to connect to:', address)
-    //  await ipfsNode.swarm.connect(address)
-    //}
-    //const dials = parsed.map((address) => {
-    //  console.log('trying to connect to:', address)
-    //  return ipfsNode.swarm.connect(address)
-    //})
-    //await Promise.all(dials)
-
-    //if (type === 'initiator') {
-    //  const addresses = parsed.filter((address) => {
-    //    return address.stringTuples().some(([protocol, value]) => {
-    //      return protocol == MEMORY && value === 'initiator'
-    //    })
-    //  })
-    //  console.log('initiator addresses:', addresses.map((address) => {
-    //    address.toString()
-    //  }))
-    //  await ipfsNode.swarm.connect(addresses[0])
-    //} else {
-    //  const addresses = parsed.filter((address) => {
-    //    return address.stringTuples().some(([protocol, value]) => {
-    //      return protocol == MEMORY && value === 'receiver'
-    //    })
-    //  })
-    //  console.log('receiver addresses:', addresses.map((address) => {
-    //    address.toString()
-    //  }))
-    //  await ipfsNode.swarm.connect(addresses[0])
-    //}
-
-    //const dials = []
-    const initiatorAddresses = parsed.filter((address) => {
-     return address.stringTuples().some(([protocol, value]) => {
-       return protocol == MEMORY && value === 'initiator'
-     })
-    })
-    //console.log('initiator addresses:', initiatorAddresses.map((address) => {
-    //  return address.toString()
-    //}))
-    //const initiatorDial = ipfsNode.swarm.connect(initiatorAddresses[0])
-    //dials.push(initiatorDial)
-    //
-    const receiverAddresses = parsed.filter((address) => {
-     return address.stringTuples().some(([protocol, value]) => {
-       return protocol == MEMORY && value === 'receiver'
-     })
-    })
-    //console.log('receiver addresses:', receiverAddresses.map((address) => {
-    //  return address.toString()
-    //}))
-    //const receiverDial = ipfsNode.swarm.connect(receiverAddresses[0])
-    //dials.push(receiverDial)
-    //
-    //try {
-    ////const dialResult = await Promise.all(dials)
-    ////console.log('vmx: dialResult:', dialResult)
-    //for (const dial of dials) {
-    //  console.log('vmx: awaiting dial:', dial)
-    //  await dial
-    //}
-    //} catch (error) {
-    //  console.log('errrrror:', error)
-    //  throw err
-    //}
-
-   // This seems to work, let's see if there's a better way.
-   const addresses = parsed
-   //const addresses = [initiatorAddresses[0], receiverAddresses[0]]
-//console.log('vmx: address book:', ipfsDialer.libp2p.peerStore.addressBook)
-   const toDialPeerId = peerIdFromString(addresses[0].getPeerId())
-   console.log('vmx: toDialPeerId:', toDialPeerId)
-   await ipfsNode.libp2p.peerStore.addressBook.add(toDialPeerId, addresses)
-   const connection = ipfsNode.swarm.connect(toDialPeerId)
-   await connection
-
-
-    //// No idea why this doesn't work.
-    //const dials = []
-    //for (const address of parsed) {
-    //  console.log('vmx: trying to connect to:', address)
-    //  const dial = ipfsNode.swarm.connect(address)
-    //  dials.push(dial)
-    //}
-    //console.log('vmx: waiting for all dials:', dials)
-    //const dialResult = await Promise.any(dials)
-    //console.log('vmx: waiting for all dials:', dialResult)
-
-
-    //await ipfsNode.pubsub.subscribe(TOPIC, onMessage)
-    //console.log('vmx: subscribed to:', TOPIC)
+    // This seems to work, let's see if there's a better way.
+    const addresses = parsed
+    const toDialPeerId = peerIdFromString(addresses[0].getPeerId())
+    console.log('vmx: toDialPeerId:', toDialPeerId)
+    await ipfsNode.libp2p.peerStore.addressBook.add(toDialPeerId, addresses)
+    const connection = ipfsNode.swarm.connect(toDialPeerId)
+    await connection
 
     const numPeers = await waitForPeersSubscribed(ipfsNode, 1, TOPIC)
     console.log('vmx: waited for subscribed peers complete:', numPeers)
@@ -215,23 +113,12 @@
 
   let sendPing = async () => {
     console.log('vmx: trying to ping to')
-    //const numPeers = await waitForPeersSubscribed(ipfsNode, 1, TOPIC)
-    //console.log('vmx: waited for subscribed peers complete:', numPeers)
 
     const message = new TextEncoder().encode('sending a ping.')
     ipfsNode.pubsub.publish(TOPIC, message)
   }
 
   let data = async () => {
-    //initiatorAddresses = await createMultiaddrs(initiator.connection)
-    //console.log('vmx: initiator multiaddrs:', initiatorAddresses)
-    //receiverAddresses = await createMultiaddrs(receiver.connection)
-    //console.log('vmx: receiver multiaddrs:', receiverAddresses)
-    //
-    //const multiaddrs = [initiatorAddresses, receiverAddresses]
-    //console.log('vmx: offer: qr code data:', JSON.stringify(multiaddrs))
-    //return JSON.stringify(multiaddrs)
-
     const addresses = await ipfsNode.swarm.localAddrs()
     console.log('vmx: offer: qr code data:', JSON.stringify(addresses))
     return JSON.stringify(addresses)
