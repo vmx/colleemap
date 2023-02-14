@@ -14,6 +14,14 @@
 
   // Multiaddress protocol used to transmit custom information.
   const MEMORY = 777
+  const CERTHASH = 466
+  const P2P = 421
+  const IP4 = 4
+  const IP6 = 41
+  const UDP = 273
+  const DNS = 53
+  const DNS4 = 54
+  const DNS6 = 55
 
   // TODO vmx 2023-01-31: Define `TOPIC` only once centrally.
   const TOPIC = 'data-exchange'
@@ -43,12 +51,46 @@
     })
   }
 
+  const toMultiaddress = (host, port, certhash, connectionType, peerId) => {
+    let addr = ''
+
+    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) {
+      addr += '/ip4'
+    } else if (
+      /^[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}$/.test(
+        host.toLowerCase()
+      )
+    ) {
+      addr += '/ip6'
+    } else {
+      // Obfuscated hosts are always IPv6.
+      addr += '/dns6'
+    }
+    addr += '/' + host
+    addr += '/udp/' + port
+    addr += '/webrtc/certhash/' + certhash
+    addr += '/memory/' + connectionType
+    addr += '/p2p/' + peerId
+
+    return new Multiaddr(addr)
+  }
+
   // Returns the parsed addresses if the scan was successful.
   const parseData = async (data) => {
+    const result = []
     try {
-      return JSON.parse(data).map((address) => {
-        return new Multiaddr(address)
-      })
+      // There's always only a single key.
+      const [peerId, addresses] = Object.entries(JSON.parse(data))[0]
+      for (const initiator of addresses.i) {
+        const [host, port, certhash] = initiator
+        result.push(toMultiaddress(host, port, certhash, 'initiator', peerId))
+      }
+      for (const receiver of addresses.r) {
+        const [host, port, certhash] = receiver
+        result.push(toMultiaddress(host, port, certhash, 'receiver', peerId))
+      }
+      console.log('vmx: parsed addresses:', JSON.stringify(result))
+      return result
     } catch (error) {
       console.log('Cannot parse QR Code.', error)
       return
@@ -67,6 +109,57 @@
       downScaledWidth: 400,
       downScaledHeight: 400
     }
+  }
+
+  // Converts a list multiaddresses into a more compact JSON form, so that the
+  // QR-code becomes smaller.
+  const addressesToJson = (addresses) => {
+    // All addresses have the same peer ID, hence we can just use the first
+    // address to get it.
+    const peerId = addresses[0].getPeerId()
+    const json = {
+      [peerId]: {
+        // Initiator
+        'i': [],
+        // receiver
+        'r': []
+      }
+    }
+    for (const address of addresses) {
+      let certhash
+      let host
+      let port
+      let connectionType
+      for (const [protocol, value] of address.stringTuples()) {
+        console.log('vmx: addressToJson protocol, value:', protocol, value)
+        switch (protocol) {
+          case CERTHASH: {
+            certhash = value
+            break
+          }
+          case DNS:
+          case DNS4:
+          case DNS6:
+          case IP4:
+          case IP6: {
+            host = value
+            break
+          }
+          case UDP: {
+            port = parseInt(value)
+            break
+          }
+          case MEMORY: {
+            // Use the first character only, to reduce the total size.
+            connectionType = value[0]
+            break
+          }
+        }
+      }
+      json[peerId][connectionType].push([host, port, certhash])
+      console.log('vmx: addressToJson: json:', json)
+    }
+    return json
   }
 
   onMount(async () => {
@@ -94,8 +187,6 @@
     qrScanner.start()
   })
 
-  // The QR-code part
-
   let connect = async () => {
     // This seems to work, let's see if there's a better way.
     const addresses = parsed
@@ -120,8 +211,10 @@
 
   let data = async () => {
     const addresses = await ipfsNode.swarm.localAddrs()
-    console.log('vmx: offer: qr code data:', JSON.stringify(addresses))
-    return JSON.stringify(addresses)
+    console.log('vmx: offer: addresses:', JSON.stringify(addresses))
+    const json = addressesToJson(addresses)
+    console.log('vmx: offer: qr code data:', json)
+    return JSON.stringify(json)
   }
 
 </script>
