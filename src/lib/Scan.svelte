@@ -81,13 +81,19 @@
     try {
       // There's always only a single key.
       const [peerId, addresses] = Object.entries(JSON.parse(data))[0]
-      for (const initiator of addresses.i) {
-        const [host, port, certhash] = initiator
-        result.push(toMultiaddress(host, port, certhash, 'initiator', peerId))
+      for (const [certhash, initiators] of Object.entries(addresses.i)) {
+        for (const [host, port] of initiators) {
+          result.push(
+            toMultiaddress(host, port, certhash, 'initiator', peerId)
+          )
+        }
       }
-      for (const receiver of addresses.r) {
-        const [host, port, certhash] = receiver
-        result.push(toMultiaddress(host, port, certhash, 'receiver', peerId))
+      for (const [certhash, receivers] of Object.entries(addresses.r)) {
+        for (const [host, port] of receivers) {
+          result.push(
+            toMultiaddress(host, port, certhash, 'receiver', peerId)
+          )
+        }
       }
       console.log('vmx: parsed addresses:', JSON.stringify(result))
       return result
@@ -120,9 +126,9 @@
     const json = {
       [peerId]: {
         // Initiator
-        'i': [],
+        'i': {},
         // receiver
-        'r': []
+        'r': {}
       }
     }
     for (const address of addresses) {
@@ -156,7 +162,11 @@
           }
         }
       }
-      json[peerId][connectionType].push([host, port, certhash])
+      if (certhash in json[peerId][connectionType]) {
+        json[peerId][connectionType][certhash].push([host, port])
+      } else {
+        json[peerId][connectionType][certhash] = [[host, port]]
+      }
       console.log('vmx: addressToJson: json:', json)
     }
     return json
@@ -213,7 +223,7 @@
     const addresses = await ipfsNode.swarm.localAddrs()
     console.log('vmx: offer: addresses:', JSON.stringify(addresses))
     const json = addressesToJson(addresses)
-    console.log('vmx: offer: qr code data:', json)
+    console.log('vmx: offer: qr code data2:', JSON.stringify(json).length, json)
     return JSON.stringify(json)
   }
 
