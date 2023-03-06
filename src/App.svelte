@@ -15,7 +15,7 @@
   //import Offer from './lib/Offer.svelte'
   import Scan from './lib/Scan.svelte'
   //import Answer from './lib/Answer.svelte'
-  //import Connected from './lib/Connected.svelte'
+  import Connected from './lib/Connected.svelte'
 
   //const createConnection = async () => {
   //  const certificate = await RTCPeerConnection.generateCertificate({
@@ -53,23 +53,7 @@
 
   const TOPIC = 'data-exchange'
 
-  let ipfsNode
-
-  const libp2pPeer = () => {
-    return createLibp2p({
-      transports: [
-        webRTCPeer(),
-      ],
-      connectionEncryption: [plaintext()],
-      transportManager: {
-        faultTolerance: FaultTolerance.NO_FATAL
-      },
-      pubsub: new gossipsub(),
-      connectionManager: {
-        autoDial: true
-      }
-    })
-  }
+  //let libp2pNode
 
   // The idea of the init function is based on
   // https://stackoverflow.com/questions/73940340/use-promise-result-for-binding/73940618#73940618
@@ -81,32 +65,48 @@
     //const receiver = await createConnection()
     //return { initiator, receiver }
 
-    ipfsNode = await IPFS.create({
-      libp2p: libp2pPeer,
-      repo: 'dialer',
-      Bootstrap: [],
-      "Addresses": {
-        "Swarm": []
+    const libp2pNode = await createLibp2p({
+      transports: [
+        webRTCPeer(),
+      ],
+      connectionEncryption: [plaintext()],
+      transportManager: {
+        faultTolerance: FaultTolerance.NO_FATAL
       },
-      pubsub: gossipsub()
+      pubsub: new gossipsub(),
+      connectionManager: {
+        //autoDial: false
+        autoDial: true
+      }
     })
 
     const receiveMessage = (message) => {
-      console.log('vmx: message received:', new TextDecoder().decode(message.data))
+      console.log('vmx: message received:', message)
+      const text = new TextDecoder().decode(message.detail.data)
+      console.log(`vmx: message received (${message.detail.topic}): ${text}`)
     }
 
-    await ipfsNode.pubsub.subscribe(TOPIC, receiveMessage)
+    libp2pNode.pubsub.addEventListener('message', receiveMessage)
+    libp2pNode.pubsub.subscribe(TOPIC)
 
-    return ipfsNode
+    libp2pNode.addEventListener('peer:discovery', (evt) => {
+      console.log('vmx: Discovered %s', evt.detail.id.toString()) // Log discovered peer
+    })
+
+    libp2pNode.connectionManager.addEventListener('peer:connect', (evt) => {
+      console.log('vmx: Connected to %s', evt.detail.remotePeer.toString()) // Log connected peer
+    })
+
+    return libp2pNode
   }
 </script>
 
-{#await init() then { initiator, receiver }}
+{#await init() then libp2pNode}
   <Route path="/"><Home /></Route>
   <!--<Route path="/items"><Items /></Route>-->
   <!--<Route path="/bingo"><Bingo /></Route>-->
   <!--<Route path="/offer"><Offer {connection}/></Route>-->
-  <Route path="/scan"><Scan { ipfsNode } /></Route>
+  <Route path="/scan"><Scan { libp2pNode } /></Route>
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
-  <!--<Route path="/connected"><Connected {connection}/></Route>-->
+  <Route path="/connected"><Connected { libp2pNode }/></Route>
 {/await}

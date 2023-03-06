@@ -10,7 +10,7 @@
   import QR from 'svelte-qr'
   import { router } from 'tinro'
 
-  export let ipfsNode
+  export let libp2pNode
 
   // Multiaddress protocol used to transmit custom information.
   const MEMORY = 777
@@ -31,7 +31,6 @@
   ///
   ///  - "scaner": QR-code scanner.
   ///  - "scaned": Information when the QR-code was successfully scanned.
-  ///  - "connected": Information when the connection was made.
   let scanState = "scanner"
   //let scanState = "scanned"
   /// The parsed data of a scan.
@@ -40,9 +39,10 @@
 
   const waitForPeersSubscribed = (peer, numPeers, topic) => {
     return new Promise((resolve, _reject) => {
-      const interval = setInterval(async () => {
-        const peerIds = await peer.pubsub.peers(topic)
-        console.log('vmx: peerIds:', peerIds)
+      const interval = setInterval(() => {
+        console.log('vmx: wait for peers subscribed: connected peerIds:', peer.getConnections().map((connection) => connection.remotePeer.toString()))
+        const peerIds = peer.pubsub.getSubscribers(topic)
+        console.log('vmx: wait for peers subscribed: subscribed peerIds:', peerIds)
         if (peerIds.length >= numPeers) {
           resolve(peerIds.length)
           clearInterval(interval)
@@ -198,29 +198,41 @@
   })
 
   let connect = async () => {
-    // This seems to work, let's see if there's a better way.
-    const addresses = parsed
-    const toDialPeerId = peerIdFromString(addresses[0].getPeerId())
-    console.log('vmx: toDialPeerId:', toDialPeerId)
-    await ipfsNode.libp2p.peerStore.addressBook.add(toDialPeerId, addresses)
-    const connection = ipfsNode.swarm.connect(toDialPeerId)
-    await connection
+    //const addresses = parsed
+    const toDialPeerIdString = parsed[0].getPeerId()
+    console.log('vmx: own PeerId:', libp2pNode.peerId.toString())
 
-    const numPeers = await waitForPeersSubscribed(ipfsNode, 1, TOPIC)
+    let addresses
+    if (libp2pNode.peerId.toString() > toDialPeerIdString) {
+      addresses = parsed.filter((address) => {
+        return address.stringTuples().some(([protocol, value]) => {
+          return protocol == MEMORY && value === 'initiator'
+        })
+      })
+    } else {
+      addresses = parsed.filter((address) => {
+        return address.stringTuples().some(([protocol, value]) => {
+          return protocol == MEMORY && value === 'receiver'
+        })
+      })
+    }
+
+    // TODO vmx: This seems to work, let's see if there's a better way.
+    const toDialPeerId = peerIdFromString(toDialPeerIdString)
+    await libp2pNode.peerStore.addressBook.add(toDialPeerId, addresses)
+    const connection = libp2pNode.dial(toDialPeerId)
+    console.log('vmx: dial started')
+    await connection
+    console.log('vmx: dial finished awaiting')
+
+    const numPeers = await waitForPeersSubscribed(libp2pNode, 1, TOPIC)
     console.log('vmx: waited for subscribed peers complete:', numPeers)
 
-    scanState = "connected"
-  }
-
-  let sendPing = async () => {
-    console.log('vmx: trying to ping to')
-
-    const message = new TextEncoder().encode('sending a ping.')
-    ipfsNode.pubsub.publish(TOPIC, message)
+    router.goto('/connected')
   }
 
   let data = async () => {
-    const addresses = await ipfsNode.swarm.localAddrs()
+    const addresses = await libp2pNode.getMultiaddrs()
     console.log('vmx: offer: addresses:', JSON.stringify(addresses))
     const json = addressesToJson(addresses)
     console.log('vmx: offer: qr code data2:', JSON.stringify(json).length, json)
@@ -236,8 +248,6 @@
   <video bind:this={video}></video>
 {:else if scanState === "scanned"}
   <div on:click={connect}>Peer addresses scanned! Click to connect.</div>
-{:else if scanState === "connected"}
-  <div on:click={sendPing}>Connected to peer xyz. Click to send a ping to the other peer.</div>
 {/if}
   <div class="qrcode">
   {#await data()}
