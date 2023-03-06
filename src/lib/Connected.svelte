@@ -17,3 +17,5 @@
 <h1>Connected</h1>
 
 <div on:click={sendPing}>Connected to peer xyz. Click to send a ping to the other peer.</div>
+
+<a href="/scan">Scan another peer</a>
