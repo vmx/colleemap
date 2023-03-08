@@ -10,6 +10,8 @@
   import QR from 'svelte-qr'
   import { router } from 'tinro'
 
+  import { name } from '../stores.js'
+
   export let libp2pNode
 
   // Multiaddress protocol used to transmit custom information.
@@ -36,6 +38,7 @@
   /// The parsed data of a scan.
   let parsed
 
+  console.log('vmx: name:', $name)
 
   const waitForPeersSubscribed = (peer, numPeers, topic) => {
     return new Promise((resolve, _reject) => {

@@ -1,21 +1,48 @@
 <script>
+  import { messages, name } from '../stores.js'
+
   export let libp2pNode
+
+  let messageToSend
+  let messagesReceived
 
   // TODO vmx 2023-01-31: Define `TOPIC` only once centrally.
   const TOPIC = 'data-exchange'
 
-  console.log('vmx: connected:', libp2pNode)
-
   let sendPing = async () => {
     console.log('vmx: trying to ping to')
 
-    const message = new TextEncoder().encode('sending a ping.')
-    await libp2pNode.pubsub.publish(TOPIC, message)
+    const encoded = new TextEncoder().encode(`${$name}: ${messageToSend}`)
+    await libp2pNode.pubsub.publish(TOPIC, encoded)
+
+    messageToSend = ''
   }
+
+  messages.subscribe((value) => {
+    console.log('vmx: connected: messages store: subscribe: value:', value)
+    messagesReceived = value
+  })
 </script>
 
-<h1>Connected</h1>
+<h1>Send message to others</h1>
 
-<div on:click={sendPing}>Connected to peer xyz. Click to send a ping to the other peer.</div>
+<form on:submit|preventDefault={sendPing}>
+  <p><input type="text" placeholder="Your message" bind:value={messageToSend} /></p>
+  <p><button type="submit">Send</button></p>
+</form>
 
-<a href="/scan">Scan another peer</a>
+<h2>Messages</h2>
+
+<ul>
+  {#each messagesReceived as messageReceived}
+    <li>{messageReceived}</li>
+  {/each}
+</ul>
+
+<hr />
+
+<p><a href="/scan">Scan another peer</a></p>
+
+
+
+

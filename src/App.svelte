@@ -16,6 +16,7 @@
   import Scan from './lib/Scan.svelte'
   //import Answer from './lib/Answer.svelte'
   import Connected from './lib/Connected.svelte'
+  import { messages } from './stores.js'
 
   //const createConnection = async () => {
   //  const certificate = await RTCPeerConnection.generateCertificate({
@@ -73,7 +74,9 @@
       transportManager: {
         faultTolerance: FaultTolerance.NO_FATAL
       },
-      pubsub: new gossipsub(),
+      pubsub: new gossipsub({
+        emitSelf: true
+      }),
       connectionManager: {
         //autoDial: false
         autoDial: true
@@ -84,6 +87,9 @@
       console.log('vmx: message received:', message)
       const text = new TextDecoder().decode(message.detail.data)
       console.log(`vmx: message received (${message.detail.topic}): ${text}`)
+      // Push the latest message to the store.
+      $messages = [...$messages, text]
+      console.log('vmx: messages:', $messages)
     }
 
     libp2pNode.pubsub.addEventListener('message', receiveMessage)
