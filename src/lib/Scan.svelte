@@ -244,8 +244,6 @@
 
 </script>
 
-<h1>Scan</h1>
-
 <div id="container">
 {#if scanState === "scanner"}
   <video bind:this={video}></video>
@@ -262,46 +260,40 @@
 </div>
 
 <style>
-  #container {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
+  :global(body) {
+    margin: 0;
+    padding: 0;
   }
 
+  #container {
+    align-items: center;
+    display: flex;
+    justify-content: space-evenly;
+    height: 100vh;
+  }
+
+  @media (orientation: portrait) {
+    #container {
+      flex-direction: column;
+    }
+  }
+
+  @media (orientation: landscape) {
+    #container {
+      flex-direction: row;
+    }
+  }
+
+  #container > * {
+    box-sizing: border-box;
+    height: 50vmax;
+    max-height: 100vmin;
+    max-width: 100vmin;
+    padding: 8px;
+    width: 50vmax;
+  }
 
   video {
-    aspect-ratio: 1/1;
-    display: block;
     object-fit: cover;
-    flex: 1;
-    /*height: 50%;*/
-    /*margin: auto;*/
-    /*width: 75%;*/
-  }
-  /*@media (orrientation: portrait) {*/
-    video {
-      height: 50%;
-      max-height: 50%;
-      max-width: 50%;
-      /*width: 100%;*/
-    }
-  /*}*/
-  /*@media (oritentation: landscape) {*/
-  /*  video {*/
-  /*    height: 100%;*/
-  /*    width: 50%;*/
-  /*  }*/
-  /*}*/
-
-  .qrcode {
-    aspect-ratio: 1/1;
-    box-sizing: border-box;
-    display: block;
-    flex: 1;
-    /*height: 100%;*/
-    max-height: 50%;
-    /*max-width: 100%;*/
-    padding: 10px;
-    width: 50%;
   }
 </style>
