@@ -3,6 +3,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 export default defineConfig({
+  base: '',
   define: {
     global: 'globalThis'
   },
@@ -13,10 +14,6 @@ export default defineConfig({
   },
   plugins: [
     basicSsl(),
-    svelte({
-      experimental: {
-        useVitePreprocess: true
-      }
-    })
+    svelte()
   ]
 })
