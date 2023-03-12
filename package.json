@@ -10,12 +10,11 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^1.0.1",
-    "@vitejs/plugin-basic-ssl": "^0.1.2",
-    "svelte": "^3.49.0",
-    "svelte-preprocess": "^4.10.7",
+    "@sveltejs/vite-plugin-svelte": "^2.0.3",
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
+    "svelte": "^3.56.0",
     "tinro": "^0.6.12",
-    "vite": "^3.0.7"
+    "vite": "^4.1.4"
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^6.1.0",

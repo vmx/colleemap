@@ -33,6 +33,8 @@
   ///
   ///  - "scaner": QR-code scanner.
   ///  - "scaned": Information when the QR-code was successfully scanned.
+  ///  - "connecting": When clicked after a successful scan and trying to
+  ///    connect.
   let scanState = "scanner"
   //let scanState = "scanned"
   /// The parsed data of a scan.
@@ -185,8 +187,6 @@
         if (parsed === undefined) {
           qrScanner.start()
         } else {
-          // TODO vmx 2023-01-05: replace the scanner with a field with a checkmark saying "scanned".
-          // It could then also present a button saying "click here to connect".
           scanState = "scanned"
         }
       },
@@ -201,6 +201,8 @@
   })
 
   let connect = async () => {
+    scanState = "connecting"
+
     //const addresses = parsed
     const toDialPeerIdString = parsed[0].getPeerId()
     console.log('vmx: own PeerId:', libp2pNode.peerId.toString())
@@ -248,9 +250,17 @@
 {#if scanState === "scanner"}
   <video bind:this={video}></video>
 {:else if scanState === "scanned"}
-  <div on:click={connect}>Peer addresses scanned! Click to connect.</div>
+  <div class="connect" on:click={connect}>
+    <p>Once the other peer has scanned your code, click here to</p>
+    <p class="connect">connect</p>
+    <p>You and the other peer should click on “connect” at roughly the same time.</p>
+  </div>
+{:else if scanState === "connecting"}
+  <div class="connect">
+    <p class="connect">Connecting…</p>
+  </div>
 {/if}
-  <div class="qrcode">
+  <div id="qrcode">
   {#await data()}
     Waiting for WebRTC offer.
   {:then resolved}
@@ -260,40 +270,21 @@
 </div>
 
 <style>
-  :global(body) {
-    margin: 0;
-    padding: 0;
-  }
-
-  #container {
-    align-items: center;
-    display: flex;
-    justify-content: space-evenly;
-    height: 100vh;
-  }
-
-  @media (orientation: portrait) {
-    #container {
-      flex-direction: column;
-    }
-  }
-
-  @media (orientation: landscape) {
-    #container {
-      flex-direction: row;
-    }
-  }
-
-  #container > * {
-    box-sizing: border-box;
-    height: 50vmax;
-    max-height: 100vmin;
-    max-width: 100vmin;
-    padding: 8px;
-    width: 50vmax;
-  }
-
   video {
     object-fit: cover;
+  }
+
+  div.connect {
+    background-color: #f69e02;
+    font-size: 1rem;
+  }
+  p.connect {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  #qrcode {
+    background-color: #fff;
   }
 </style>

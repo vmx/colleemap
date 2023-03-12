@@ -1,0 +1,32 @@
+#container {
+  align-items: center;
+  display: flex;
+  justify-content: space-evenly;
+  height: 100vh;
+  height: 100dvh;
+}
+
+@media (orientation: portrait) {
+  #container {
+    flex-direction: column;
+  }
+}
+
+@media (orientation: landscape) {
+  #container {
+    flex-direction: row;
+  }
+}
+
+#container > * {
+  box-sizing: border-box;
+  height: 50vmax;
+  height: 50dvmax;
+  max-height: 100vmin;
+  max-height: 100dvmin;
+  max-width: 100vmin;
+  max-width: 100dvmin;
+  padding: 8px;
+  width: 50vmax;
+  width: 50dvmax;
+}

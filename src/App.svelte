@@ -18,6 +18,9 @@
   import Connected from './lib/Connected.svelte'
   import { messages } from './stores.js'
 
+  import './general.css'
+  import './split.css'
+
   //const createConnection = async () => {
   //  const certificate = await RTCPeerConnection.generateCertificate({
   //    name: 'ECDSA',
@@ -118,3 +121,12 @@
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <Route path="/connected"><Connected { libp2pNode }/></Route>
 {/await}
+
+<!--
+<style>
+:global(body) {
+  margin: 0;
+  padding: 0;
+}
+</style>
+-->
