@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { Route } from 'tinro';
+  import { Route, router } from 'tinro';
 
   import { createLibp2p } from 'libp2p'
   import { webRTC, webRTCPeer } from '@libp2p/webrtc'
@@ -53,6 +53,8 @@
   //}
 
   const TOPIC = 'data-exchange'
+
+  router.mode.hash()
 
   //let libp2pNode
 
