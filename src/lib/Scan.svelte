@@ -56,29 +56,22 @@
     })
   }
 
-  const toMultiaddress = (host, port, certhash, connectionType, peerId) => {
-    let addr = ''
+  const toMemoryValue = (connectionType, hostPorts) => {
+    const hostPortsString = hostPorts.map(([host, port]) => {
+      return `${host}_${port}`
+    }).join('|')
+    return `${connectionType}=${hostPortsString}`
+  }
 
-    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) {
-      addr += '/ip4'
-    } else if (
-      /^[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}:[\da-f]{0,4}$/.test(
-        host.toLowerCase()
-      )
-    ) {
-      addr += '/ip6'
-    } else {
-      // Obfuscated hosts are always IPv6.
-      addr += '/dns6'
-    }
-    addr += '/' + host
-    addr += '/udp/' + port
+  const toMultiaddress = (certhash, connectionType, peerId, hostPorts) => {
+    let addr = ''
     addr += '/webrtc/certhash/' + certhash
-    addr += '/memory/' + connectionType
+    addr += '/memory/' +  toMemoryValue(connectionType, hostPorts)
     addr += '/p2p/' + peerId
 
     return new Multiaddr(addr)
   }
+
 
   // Returns the parsed addresses if the scan was successful.
   const parseData = async (data) => {
@@ -87,18 +80,14 @@
       // There's always only a single key.
       const [peerId, addresses] = Object.entries(JSON.parse(data))[0]
       for (const [certhash, initiators] of Object.entries(addresses.i)) {
-        for (const [host, port] of initiators) {
-          result.push(
-            toMultiaddress(host, port, certhash, 'initiator', peerId)
-          )
-        }
+        result.push(
+          toMultiaddress(certhash, 'initiator', peerId, initiators)
+        )
       }
       for (const [certhash, receivers] of Object.entries(addresses.r)) {
-        for (const [host, port] of receivers) {
-          result.push(
-            toMultiaddress(host, port, certhash, 'receiver', peerId)
-          )
-        }
+        result.push(
+          toMultiaddress(certhash, 'receiver', peerId, receivers)
+        )
       }
       console.log('vmx: parsed addresses:', JSON.stringify(result))
       return result
@@ -140,7 +129,8 @@
       let certhash
       let host
       let port
-      let connectionType
+      let connectionTypeShort
+      let hostPorts
       for (const [protocol, value] of address.stringTuples()) {
         console.log('vmx: addressToJson protocol, value:', protocol, value)
         switch (protocol) {
@@ -148,30 +138,22 @@
             certhash = value
             break
           }
-          case DNS:
-          case DNS4:
-          case DNS6:
-          case IP4:
-          case IP6: {
-            host = value
-            break
-          }
-          case UDP: {
-            port = parseInt(value)
-            break
-          }
           case MEMORY: {
             // Use the first character only, to reduce the total size.
-            connectionType = value[0]
+            //connectionType = value[0]
+            const [connectionType, hostPortsString] = value.split('=')
+            hostPorts = hostPortsString.split('|').map((hostPort) => {
+              const [host, port] = hostPort.split('_')
+              return [host, parseInt(port)]
+            })
+            // Use the first character of the connection type only, to reduce
+            // the total size.
+            connectionTypeShort = connectionType[0]
             break
           }
         }
       }
-      if (certhash in json[peerId][connectionType]) {
-        json[peerId][connectionType][certhash].push([host, port])
-      } else {
-        json[peerId][connectionType][certhash] = [[host, port]]
-      }
+      json[peerId][connectionTypeShort][certhash] = hostPorts
       console.log('vmx: addressToJson: json:', json)
     }
     return json
@@ -203,7 +185,6 @@
   let connect = async () => {
     scanState = "connecting"
 
-    //const addresses = parsed
     const toDialPeerIdString = parsed[0].getPeerId()
     console.log('vmx: own PeerId:', libp2pNode.peerId.toString())
 
@@ -211,23 +192,22 @@
     if (libp2pNode.peerId.toString() > toDialPeerIdString) {
       addresses = parsed.filter((address) => {
         return address.stringTuples().some(([protocol, value]) => {
-          return protocol == MEMORY && value === 'initiator'
+          return protocol == MEMORY && value.startsWith('initiator')
         })
       })
     } else {
       addresses = parsed.filter((address) => {
         return address.stringTuples().some(([protocol, value]) => {
-          return protocol == MEMORY && value === 'receiver'
+          return protocol == MEMORY && value.startsWith('receiver')
         })
       })
     }
 
     // TODO vmx: This seems to work, let's see if there's a better way.
     const toDialPeerId = peerIdFromString(toDialPeerIdString)
-    await libp2pNode.peerStore.addressBook.add(toDialPeerId, addresses)
-    const connection = libp2pNode.dial(toDialPeerId)
-    console.log('vmx: dial started')
-    await connection
+    console.log('vmx: about to dial')
+    const connection = await libp2pNode.dial(addresses[0])
+    //await Promise.any(connections)
     console.log('vmx: dial finished awaiting')
 
     const numPeers = await waitForPeersSubscribed(libp2pNode, 1, TOPIC)
