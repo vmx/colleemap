@@ -5,7 +5,7 @@
   import { createLibp2p } from 'libp2p'
   import { webRTC, webRTCPeer } from '@libp2p/webrtc'
   import { FaultTolerance } from '@libp2p/interface-transport'
-  import * as IPFS from 'ipfs-core'
+  //import * as IPFS from 'ipfs-core'
   import { gossipsub } from '@chainsafe/libp2p-gossipsub'
   import { plaintext } from 'libp2p/insecure'
 
