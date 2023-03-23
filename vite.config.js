@@ -9,7 +9,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     esbuildOptions: {
-      target: 'es2020'
+      target: 'es2022'
     }
   },
   plugins: [
