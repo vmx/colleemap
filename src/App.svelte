@@ -8,6 +8,9 @@
   //import * as IPFS from 'ipfs-core'
   import { gossipsub } from '@chainsafe/libp2p-gossipsub'
   import { plaintext } from 'libp2p/insecure'
+  import { pipe } from 'it-pipe'
+  import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+  import map from 'it-map'
 
   import Home from './lib/Home.svelte'
   //import Items from './lib/Items.svelte'
@@ -16,6 +19,7 @@
   import Scan from './lib/Scan.svelte'
   //import Answer from './lib/Answer.svelte'
   import Connected from './lib/Connected.svelte'
+  import Topology from './lib/Topology.svelte'
   import { messages } from './stores.js'
 
   import './general.css'
@@ -108,6 +112,24 @@
       console.log('vmx: Connected to %s', evt.detail.remotePeer.toString()) // Log connected peer
     })
 
+    await libp2pNode.handle('/getpeers/1.0.0', async ({ stream }) => {
+      console.log('vmx: app: handle protocol')
+      const peers = libp2pNode.getPeers().map((peer) => peer.toString())
+      console.log('vmx: app: getpeers protocol: peers', peers)
+      pipe(
+        peers,
+        (source) => {
+          return map(
+            source,
+            (string) => {
+              return uint8ArrayFromString(string)
+            }
+          )
+        },
+        stream
+      )
+    })
+
     return libp2pNode
   }
 </script>
@@ -120,6 +142,7 @@
   <Route path="/scan"><Scan { libp2pNode } /></Route>
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <Route path="/connected"><Connected { libp2pNode }/></Route>
+  <Route path="/topology"><Topology { libp2pNode }/></Route>
 {/await}
 
 <!--

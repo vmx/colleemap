@@ -42,6 +42,7 @@
 <hr />
 
 <p><a href="/scan">Scan another peer</a></p>
+<p><a href="/topology">Topology</a></p>
 
 
 

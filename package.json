@@ -22,9 +22,12 @@
     "@libp2p/peer-id": "^2.0.1",
     "@libp2p/webrtc": "https://github.com/vmx/js-libp2p-webrtc#vmx",
     "@multiformats/multiaddr": "^11.0.7",
+    "it-map": "^3.0.2",
+    "it-pipe": "^3.0.1",
     "libp2p": "^0.42.2",
     "multiformats": "^10.0.2",
     "qr-scanner": "^1.4.1",
-    "svelte-qr": "^1.0.0"
+    "svelte-qr": "^1.0.0",
+    "uint8arrays": "^4.0.3"
   }
 }
