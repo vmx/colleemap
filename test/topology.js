@@ -11,7 +11,7 @@ test('Topology', (assert) => {
       { id: 'peerA' },
       { id: 'peerB' }
     ])
-    assert.equal(topology.edges, [
+    assert.equal(topology.links, [
       { source: 'peerA', target: 'peerB' }
     ])
   })
@@ -23,7 +23,7 @@ test('Topology', (assert) => {
       { id: 'peerA' },
       { id: 'peerB' }
     ])
-    assert.equal(topology.edges, [
+    assert.equal(topology.links, [
       { source: 'peerA', target: 'peerB' }
     ])
   })
@@ -36,7 +36,7 @@ test('Topology', (assert) => {
       { id: 'peerA' },
       { id: 'peerB' }
     ])
-    assert.equal(topology.edges, [
+    assert.equal(topology.links, [
       { source: 'peerA', target: 'peerB' }
     ])
   })
@@ -48,7 +48,7 @@ test('Topology', (assert) => {
       { id: 'peerB' },
       { id: 'peerC' }
     ])
-    assert.equal(topology.edges, [
+    assert.equal(topology.links, [
       { source: 'peerA', target: 'peerB' },
       { source: 'peerB', target: 'peerC' }
     ])
@@ -61,7 +61,7 @@ test('Topology', (assert) => {
       { id: 'peerB' },
       { id: 'peerC' }
     ])
-    assert.equal(topology.edges, [
+    assert.equal(topology.links, [
       { source: 'peerA', target: 'peerB' },
       { source: 'peerB', target: 'peerC' },
       { source: 'peerA', target: 'peerC' }

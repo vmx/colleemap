@@ -10,10 +10,11 @@ export class Topology {
   ///  target: "peer-id-as-string"}`.
   #connections = []
 
-  /// Return the edges in a D3-force compatible way.
+  /// Return the links in a D3-force compatible way.
   //
-  /// It's a list of objects of form `{id: "peer-id-as-string"}`.
-  get edges () {
+  /// It's a list of object of the form `{source: "peer-id-as-string",
+  ///  target: "peer-id-as-string"}`.
+  get links () {
     return this.#connections
   }
 
