@@ -7,14 +7,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "pta ./test/"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.3",
     "@vitejs/plugin-basic-ssl": "^1.0.1",
     "svelte": "^3.56.0",
     "tinro": "^0.6.12",
-    "vite": "^4.1.4"
+    "vite": "^4.1.4",
+    "zora": "^5.2.0"
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^6.1.0",
@@ -26,6 +28,7 @@
     "it-pipe": "^3.0.1",
     "libp2p": "^0.42.2",
     "multiformats": "^10.0.2",
+    "pta": "^1.2.0",
     "qr-scanner": "^1.4.1",
     "svelte-qr": "^1.0.0",
     "uint8arrays": "^4.0.3"
