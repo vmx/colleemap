@@ -9,7 +9,7 @@
   import { gossipsub } from '@chainsafe/libp2p-gossipsub'
   import { plaintext } from 'libp2p/insecure'
   import { pipe } from 'it-pipe'
-  import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
+  import { fromString } from 'uint8arrays/from-string'
   import map from 'it-map'
 
   import Home from './lib/Home.svelte'
@@ -116,15 +116,23 @@
       console.log('vmx: app: handle protocol')
       const peers = libp2pNode.getPeers().map((peer) => peer.toString())
       console.log('vmx: app: getpeers protocol: peers', peers)
-      pipe(
+      await pipe(
         peers,
         (source) => {
-          return map(
+          //return map(
+          //  source,
+          //  (string) => {
+          //    return uint8ArrayFromString(string)
+          //  }
+          //)
+          const mapped = map(
             source,
             (string) => {
-              return uint8ArrayFromString(string)
+              return fromString(string)
             }
           )
+          console.log('vmx: app: getpeers protocol: mapped:', mapped)
+          return mapped
         },
         stream
       )
