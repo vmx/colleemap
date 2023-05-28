@@ -19,19 +19,20 @@
     "zora": "^5.2.0"
   },
   "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^6.1.0",
-    "@libp2p/interface-transport": "^2.1.1",
+    "@chainsafe/libp2p-gossipsub": "^8.0.0",
+    "@libp2p/interface-transport": "^4.0.3",
     "@libp2p/peer-id": "^2.0.1",
-    "@libp2p/webrtc": "https://github.com/vmx/js-libp2p-webrtc#vmx",
-    "@multiformats/multiaddr": "^11.0.7",
+    "@libp2p/webrtc": "../../../webrtc/js-libp2p-webrtc",
+    "@multiformats/multiaddr": "^12.0.0",
     "d3": "^7.8.4",
     "it-map": "^3.0.2",
     "it-pipe": "^3.0.1",
-    "libp2p": "^0.42.2",
-    "multiformats": "^10.0.2",
+    "libp2p": "^0.45.2",
+    "multiformats": "^11.0.2",
     "pta": "^1.2.0",
     "qr-scanner": "^1.4.1",
     "svelte-qr": "^1.0.0",
-    "uint8arrays": "^4.0.3"
+    "uint8arrays": "^4.0.3",
+    "vite-plugin-node-stdlib-browser": "^0.2.1"
   }
 }

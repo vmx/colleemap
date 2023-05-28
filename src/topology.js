@@ -75,7 +75,13 @@ export class PeersQueue {
 
   /// The queue needs to have an initial list of peers to start processing,
   /// hence they are passed into the constructor.
-  constructor (peers) {
+  // The `originatingPeer` is the peer we start the discovery from. It's passed
+  // in, so that it doesn't try to dial itself.
+  constructor (originatingPeer, peers) {
+    // Define the peer we start the discovery from as "processed", so that it
+    // doesn't get dialed later on.
+    this.#processed.add(originatingPeer)
+
     this.#queue.push(...peers)
   }
 

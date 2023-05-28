@@ -5,13 +5,17 @@
   import { select, forceSimulation, forceLink, forceManyBody, forceCenter, timeout } from 'd3';
   import { pipe } from 'it-pipe'
   import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+  import { peerIdFromString } from '@libp2p/peer-id'
+  import { isPeerId } from '@libp2p/interface-peer-id'
 
   import { Topology, PeersQueue } from '../topology.js'
 
   export let libp2pNode
 
   const topology = new Topology()
-  const queue = new PeersQueue(libp2pNode.getPeers())
+  const queue = new PeersQueue(
+    libp2pNode.peerId.toString(),
+    libp2pNode.getPeers().map((peer) => peer.toString()))
 
   const initD3 = (nodes, links) => {
     //const container = select('#container')
@@ -75,25 +79,26 @@
 
   const init = async () => {
     while (!queue.isEmpty()) {
+      //const peerToDial = peerIdFromString(queue.pop())
       const peerToDial = queue.pop()
+      console.log('vmx: topology: peer to dial:', isPeerId(peerToDial), peerToDial)
       const stream = await libp2pNode.dialProtocol(
-        peerToDial, '/getpeers/1.0.0')
-      console.log('vmx: topology: peer to dial:', peerToDial)
+        peerIdFromString(peerToDial), '/getpeers/1.0.0')
       await pipe(
         stream,
         async (source) => {
           for await (const data of source) {
             const newPeer = uint8ArrayToString(data.subarray())
-            console.log('vmx: topology: peer:', newPeer)
+            //console.log('vmx: topology: peer:', newPeer)
 
-            //topology.addConnection(peerToDial, newPeer)
-            //queue.add(newPeer)
-            console.log('vmx: topology: one peer done: peer:', newPeer)
+            topology.addConnection(peerToDial, newPeer)
+            queue.add(newPeer)
+            //console.log('vmx: topology: one peer done: peer:', newPeer)
           }
-          console.log('vmx: done with receiving all peers')
+          //console.log('vmx: done with receiving all peers')
         }
       )
-      console.log('vmx: done with the pipe')
+      //console.log('vmx: done with the pipe')
     }
 
     console.log('vmx: topology: nodes, links:', topology.nodes, topology.links)
@@ -111,10 +116,10 @@
 
 console.log('vmx: topology: init()')
 
-    //console.log('vmx: topolgy: nodes:', topology.nodes)
-    //console.log('vmx: topolgy: links:', topology.links)
-    //initD3(topology.nodes, topology.links)
-    initD3(nodes, links)
+    console.log('vmx: topolgy: nodes:', topology.nodes)
+    console.log('vmx: topolgy: links:', topology.links)
+    initD3(topology.nodes, topology.links)
+    //initD3(nodes, links)
   }
 
   onMount(async () => {

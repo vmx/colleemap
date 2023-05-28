@@ -46,7 +46,7 @@
     return new Promise((resolve, _reject) => {
       const interval = setInterval(() => {
         console.log('vmx: wait for peers subscribed: connected peerIds:', peer.getConnections().map((connection) => connection.remotePeer.toString()))
-        const peerIds = peer.pubsub.getSubscribers(topic)
+        const peerIds = peer.services.pubsub.getSubscribers(topic)
         console.log('vmx: wait for peers subscribed: subscribed peerIds:', peerIds)
         if (peerIds.length >= numPeers) {
           resolve(peerIds.length)

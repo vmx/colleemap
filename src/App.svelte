@@ -3,7 +3,7 @@
   import { Route, router } from 'tinro';
 
   import { createLibp2p } from 'libp2p'
-  import { webRTC, webRTCPeer } from '@libp2p/webrtc'
+  import { webRTCNoNat } from '@libp2p/webrtc'
   import { FaultTolerance } from '@libp2p/interface-transport'
   //import * as IPFS from 'ipfs-core'
   import { gossipsub } from '@chainsafe/libp2p-gossipsub'
@@ -11,6 +11,7 @@
   import { pipe } from 'it-pipe'
   import { fromString } from 'uint8arrays/from-string'
   import map from 'it-map'
+  import { identifyService } from 'libp2p/identify'
 
   import Home from './lib/Home.svelte'
   //import Items from './lib/Items.svelte'
@@ -77,18 +78,20 @@
 
     const libp2pNode = await createLibp2p({
       transports: [
-        webRTCPeer(),
+        webRTCNoNat(),
       ],
       connectionEncryption: [plaintext()],
       transportManager: {
         faultTolerance: FaultTolerance.NO_FATAL
       },
-      pubsub: new gossipsub({
-        emitSelf: true
-      }),
+      services: {
+        pubsub: gossipsub({
+          emitSelf: true
+        }),
+        identify: identifyService()
+      },
       connectionManager: {
-        //autoDial: false
-        autoDial: true
+        minConnections: 0
       }
     })
 
@@ -101,15 +104,15 @@
       console.log('vmx: messages:', $messages)
     }
 
-    libp2pNode.pubsub.addEventListener('message', receiveMessage)
-    libp2pNode.pubsub.subscribe(TOPIC)
+    libp2pNode.services.pubsub.addEventListener('message', receiveMessage)
+    libp2pNode.services.pubsub.subscribe(TOPIC)
 
     libp2pNode.addEventListener('peer:discovery', (evt) => {
       console.log('vmx: Discovered %s', evt.detail.id.toString()) // Log discovered peer
     })
 
-    libp2pNode.connectionManager.addEventListener('peer:connect', (evt) => {
-      console.log('vmx: Connected to %s', evt.detail.remotePeer.toString()) // Log connected peer
+    libp2pNode.addEventListener('peer:connect', (evt) => {
+      console.log('vmx: Connected to %s', evt.detail.toString()) // Log connected peer
     })
 
     await libp2pNode.handle('/getpeers/1.0.0', async ({ stream }) => {

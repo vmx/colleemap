@@ -13,7 +13,7 @@
     console.log('vmx: trying to ping to')
 
     const encoded = new TextEncoder().encode(`${$name}: ${messageToSend}`)
-    await libp2pNode.pubsub.publish(TOPIC, encoded)
+    await libp2pNode.services.pubsub.publish(TOPIC, encoded)
 
     messageToSend = ''
   }
