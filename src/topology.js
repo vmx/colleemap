@@ -15,7 +15,8 @@ export class Topology {
   /// It's a list of object of the form `{source: "peer-id-as-string",
   ///  target: "peer-id-as-string"}`.
   get links () {
-    return this.#connections
+    // D3 manipulates the objects, hence return a clone.
+    return structuredClone(this.#connections)
   }
 
   /// Return the edges in a D3-force compatible way.

@@ -10,6 +10,7 @@
   import QR from 'svelte-qr'
   import { router } from 'tinro'
 
+  import { PUBSUB_TOPIC_DATA } from '../constants.js'
   import { name } from '../stores.js'
 
   export let libp2pNode
@@ -24,9 +25,6 @@
   const DNS = 53
   const DNS4 = 54
   const DNS6 = 55
-
-  // TODO vmx 2023-01-31: Define `TOPIC` only once centrally.
-  const TOPIC = 'data-exchange'
 
   let video
   /// The scan state defines which elements are displayed.
@@ -210,7 +208,7 @@
     //await Promise.any(connections)
     console.log('vmx: dial finished awaiting')
 
-    const numPeers = await waitForPeersSubscribed(libp2pNode, 1, TOPIC)
+    const numPeers = await waitForPeersSubscribed(libp2pNode, 1, PUBSUB_TOPIC_DATA)
     console.log('vmx: waited for subscribed peers complete:', numPeers)
 
     router.goto('/connected')

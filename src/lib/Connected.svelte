@@ -1,4 +1,5 @@
 <script>
+  import { PUBSUB_TOPIC_DATA } from '../constants.js'
   import { messages, name } from '../stores.js'
 
   export let libp2pNode
@@ -6,14 +7,11 @@
   let messageToSend
   let messagesReceived
 
-  // TODO vmx 2023-01-31: Define `TOPIC` only once centrally.
-  const TOPIC = 'data-exchange'
-
   let sendPing = async () => {
     console.log('vmx: trying to ping to')
 
     const encoded = new TextEncoder().encode(`${$name}: ${messageToSend}`)
-    await libp2pNode.services.pubsub.publish(TOPIC, encoded)
+    await libp2pNode.services.pubsub.publish(PUBSUB_TOPIC_DATA, encoded)
 
     messageToSend = ''
   }
