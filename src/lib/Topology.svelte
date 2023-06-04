@@ -15,30 +15,24 @@
   export let libp2pNode
 
   const initD3 = (nodes, links) => {
-    //const container = select('#container')
-    //const svg = container.append('svg')
-    //const container = select('#container')
     const svg = select('svg')
-      //.attr('height', 512)
-      //.attr('width', 512)
-
     const { width, height } = svg.node().getBoundingClientRect()
     console.log('vmx: width, height:', width, height)
 
-    //let svgNodes = svg
-    //  .append('g')
-    //  .selectAll('circle')
-    //  .data(nodes)
-    //  .join('circle')
-    //
-    //let svgEdges = svg
-    //  .append('g')
-    //  .attr('stroke', '#000')
-    //  .attr('stroke-width', 4)
-    //  .selectAll('line')
-    //  .data(links)
-    //  .join('line')
-    //
+    const svgNodes = svg
+      .append('g')
+      .selectAll('circle')
+      .data(nodes)
+      .join('circle')
+
+    const svgEdges = svg
+      .append('g')
+      .attr('stroke', '#000')
+      .attr('stroke-width', 4)
+      .selectAll('line')
+      .data(links)
+      .join('line')
+
     const ticked = () => {
       svgNodes
         .attr('r', 16)
@@ -62,78 +56,21 @@
       .stop()
       //.on('tick', ticked)
       //.nodes(nodes)
-    //.force('link').links(links)
-
+      //.force('link').links(links)
 
     simulation.nodes(nodes)
     simulation.force('link').links(links)
-
-    //const simulation = forceSimulation(nodes)
-    //  .force('link', forceLink(links)
-    //         .id((d) => d.id)
-    //         .distance(64)
-    //  )
-    //  //.force('charge', forceManyBody())
-    //  .force('center', forceCenter(width/2, height/2))
-    //  .stop()
 
     for (let ii = 0; ii < 20; ii++) {
       simulation.tick()
     }
 
-    let svgNodes = svg
-      .append('g')
-      .selectAll('circle')
-      .data(nodes)
-      .join('circle')
-
-    let svgEdges = svg
-      .append('g')
-      .attr('stroke', '#000')
-      .attr('stroke-width', 4)
-      .selectAll('line')
-      .data(links)
-      .join('line')
-
     ticked()
-
-    //simulation.nodes(nodes)
-    //simulation.force('link').links(links)
-
-    //svgEdges = svgEdges
-    //  .data(links)
-    //  .join('line')
-    //svgNodes = svgNodes
-    //  .data(nodes)
-    //  .join('circle')
-
-
   }
-
-  //const handleMessage = (message) => {
-  //  if (message.detail.topic === PUBSUB_TOPIC_DATA) {
-  //    const peers = JSON.parse(uint8ArrayToString(message.detail.data))
-  //    for (const peer of peers) {
-  //      topology.addConnection(message.detail.from.toString(), peer)
-  //    }
-  //  }
-  //}
-
-  //const init = async () => {
-  //  console.log('vmx: topology: init()')
-  //
-  //  libp2pNode.services.pubsub.addEventListener('message', handleMessage)
-  //
-  //  console.log('vmx: topology: nodes, links:', topology.nodes, topology.links)
-  //  initD3(topology.nodes, topology.links)
-  //}
 
   onMount(async () => {
     console.log('vmx: topology: onmount: topology:', topology)
     initD3(topology.nodes, topology.links)
-    ////document.addEventListener("DOMContentLoaded", async () => {
-    //  await init()
-    ////})
   })
 
   onDestroy(() => {
