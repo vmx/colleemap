@@ -4,6 +4,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import nodePolyfills from "vite-plugin-node-stdlib-browser"
 
 export default defineConfig({
+  assetsInclude: ['**/*.pmtiles'],
   base: '',
   define: {
     global: 'globalThis'

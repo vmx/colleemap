@@ -22,6 +22,7 @@
   //import Answer from './lib/Answer.svelte'
   import Connected from './lib/Connected.svelte'
   import Topology from './lib/Topology.svelte'
+  import Map from './lib/Map.svelte'
   import { PUBSUB_TOPIC_TOPOLOGY, PUBSUB_TOPIC_DATA } from './constants.js'
   import { messages } from './stores.js'
   import topology from './lib/topology-instance.js'
@@ -177,6 +178,7 @@
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <Route path="/connected"><Connected { libp2pNode }/></Route>
   <Route path="/topology"><Topology { libp2pNode }/></Route>
+  <Route path="/map"><Map { libp2pNode }/></Route>
 {/await}
 
 <!--
