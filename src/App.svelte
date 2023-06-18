@@ -23,6 +23,7 @@
   import Connected from './lib/Connected.svelte'
   import Topology from './lib/Topology.svelte'
   import Map from './lib/Map.svelte'
+  import Copypaste from './lib/Copypaste.svelte'
   import { PUBSUB_TOPIC_TOPOLOGY, PUBSUB_TOPIC_DATA } from './constants.js'
   import { messages } from './stores.js'
   import topology from './lib/topology-instance.js'
@@ -179,6 +180,7 @@
   <Route path="/connected"><Connected { libp2pNode }/></Route>
   <Route path="/topology"><Topology { libp2pNode }/></Route>
   <Route path="/map"><Map { libp2pNode }/></Route>
+  <Route path="/copypaste"><Copypaste { libp2pNode }/></Route>
 {/await}
 
 <!--
