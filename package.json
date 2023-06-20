@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^8.0.0",
+    "@ipld/dag-cbor": "^9.0.3",
     "@libp2p/interface-transport": "^4.0.3",
     "@libp2p/peer-id": "^2.0.1",
     "@libp2p/webrtc": "https://github.com/vmx/js-libp2p-webrtc#nonat",

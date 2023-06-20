@@ -8,6 +8,11 @@
   import { Vector as VectorLayer } from 'ol/layer';
   import Draw from 'ol/interaction/Draw'
   import Polygon from 'ol/geom/Polygon'
+  import GeoJSON from 'ol/format/GeoJSON'
+  import { createRegularPolygon } from 'ol/interaction/Draw';
+  import * as Block from 'multiformats/block'
+  import * as codec from '@ipld/dag-cbor'
+  import { sha256 as hasher } from 'multiformats/hashes/sha2'
 
   import kosovoData from '../kosovo.pmtiles'
 
@@ -42,7 +47,7 @@
   const drawingInteraction = new Draw({
     source: drawingSource,
     type: 'Circle',
-    //geometryFunction: geometryFunction,
+    geometryFunction: createRegularPolygon(6),
   })
 
 
@@ -57,9 +62,18 @@
     }
   }
 
-  const syncFeatures = () => {
+  const syncFeatures = async () => {
+    let geojsonFormat = new GeoJSON()
     const features = drawingSource.getFeatures()
     console.log('vmx: syncing features:', features)
+    let blocks = await Promise.all(features.map(async (feature) => {
+      //console.log('vmx: feature geom:', geojsonFormat.writeFeature(feature))
+      let geoJson = geojsonFormat.writeFeatureObject(feature)
+      console.log('vmx: feature geojson:', geoJson)
+      let block = await Block.encode({ value: geoJson, codec, hasher })
+      return block
+    }))
+    console.log('vmx: blocks:', blocks)
   }
 
   const initMap = (node) => {
