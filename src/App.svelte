@@ -13,6 +13,12 @@
   import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
   import map from 'it-map'
   import { identifyService } from 'libp2p/identify'
+  import { createHelia } from 'helia'
+  import { dagCbor } from '@helia/dag-cbor'
+  import { CID } from 'multiformats/cid'
+  import GeometryCollection from 'ol/geom/GeometryCollection'
+  import GeoJSON from 'ol/format/GeoJSON'
+  import Feature from 'ol/Feature'
 
   import Home from './lib/Home.svelte'
   //import Items from './lib/Items.svelte'
@@ -24,7 +30,7 @@
   import Topology from './lib/Topology.svelte'
   import Map from './lib/Map.svelte'
   import Copypaste from './lib/Copypaste.svelte'
-  import { PUBSUB_TOPIC_TOPOLOGY, PUBSUB_TOPIC_DATA } from './constants.js'
+  import { PUBSUB_TOPIC_CIDS, PUBSUB_TOPIC_DATA, PUBSUB_TOPIC_TOPOLOGY } from './constants.js'
   import { messages } from './stores.js'
   import topology from './lib/topology-instance.js'
 
@@ -80,27 +86,73 @@
     //const receiver = await createConnection()
     //return { initiator, receiver }
 
-    const libp2pNode = await createLibp2p({
-      transports: [
-        webRTCNoNat(),
-      ],
-      connectionEncryption: [plaintext()],
-      transportManager: {
-        faultTolerance: FaultTolerance.NO_FATAL
-      },
-      services: {
-        pubsub: gossipsub({
-          emitSelf: true
-        }),
-        identify: identifyService()
-      },
-      connectionManager: {
-        minConnections: 0
+    //const libp2pNode = await createLibp2p({
+    //  transports: [
+    //    webRTCNoNat(),
+    //  ],
+    //  connectionEncryption: [plaintext()],
+    //  transportManager: {
+    //    faultTolerance: FaultTolerance.NO_FATAL
+    //  },
+    //  services: {
+    //    pubsub: gossipsub({
+    //      emitSelf: true
+    //    }),
+    //    identify: identifyService()
+    //  },
+    //  connectionManager: {
+    //    minConnections: 0
+    //  }
+    //})
+
+    const heliaNode = await createHelia({
+      libp2p: {
+        transports: [
+          webRTCNoNat(),
+        ],
+        connectionEncryption: [plaintext()],
+        transportManager: {
+          faultTolerance: FaultTolerance.NO_FATAL
+        },
+        services: {
+          pubsub: gossipsub({
+            emitSelf: true
+          }),
+          identify: identifyService()
+        },
+        connectionManager: {
+          minConnections: 0
+        }
       }
     })
 
-    const receiveMessage = (message) => {
+    const storage = dagCbor(heliaNode)
+
+    const receiveMessage = async (message) => {
       switch (message.detail.topic) {
+        case PUBSUB_TOPIC_CIDS:
+          const geoJsonFormat = new GeoJSON()
+          // In order to be able to identify features, set an ID for the whole
+          // collection. Use the PeerId for it, as we know it's unique.
+          const featureId = message.detail.from.toString()
+
+          // We pubsub binary encoded CIDs.
+          const rootCid = CID.decode(message.detail.data)
+          console.log(`vmx: root CID received (${rootCid})`)
+          const rootData = await storage.get(rootCid)
+          const features = await Promise.all(rootData.map(async (cid) => {
+            const geoJson = await storage.get(cid)
+            return geoJsonFormat.readFeature(geoJson)
+          }))
+          // Create a single feature, a geometry collection, out of all
+          // features. This way we can update the data easily when we get it
+          // from a peer.
+          const collection = new Feature(new GeometryCollection(features))
+          // In order to be able to identify features, set an ID for the whole
+          // collection. Use the PeerId for it, as we know it's unique.
+          collection.setId(featureId)
+          console.log('vmx: combined feature:', collection.getId(), collection);
+          break
         case PUBSUB_TOPIC_DATA:
           console.log('vmx: message received:', message)
           const text = new TextDecoder().decode(message.detail.data)
@@ -120,15 +172,16 @@
       }
     }
 
-    libp2pNode.services.pubsub.addEventListener('message', receiveMessage)
-    libp2pNode.services.pubsub.subscribe(PUBSUB_TOPIC_DATA)
-    libp2pNode.services.pubsub.subscribe(PUBSUB_TOPIC_TOPOLOGY)
+    heliaNode.libp2p.services.pubsub.addEventListener('message', receiveMessage)
+    heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_CIDS)
+    heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_DATA)
+    heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_TOPOLOGY)
 
-    libp2pNode.addEventListener('peer:discovery', (evt) => {
+    heliaNode.libp2p.addEventListener('peer:discovery', (evt) => {
       console.log('vmx: Discovered %s', evt.detail.id.toString()) // Log discovered peer
     })
 
-    libp2pNode.addEventListener('peer:connect', (evt) => {
+    heliaNode.libp2p.addEventListener('peer:connect', (evt) => {
       console.log('vmx: Connected to %s', evt.detail.toString()) // Log connected peer
     })
 
@@ -160,27 +213,27 @@
 
     // Announce every minute all peers a peer is connected too.
     setInterval(async () => {
-      const peers = libp2pNode.getPeers().map((peer) => peer.toString())
+      const peers = heliaNode.libp2p.getPeers().map((peer) => peer.toString())
       const data = uint8ArrayFromString(JSON.stringify(peers))
-      await libp2pNode.services.pubsub.publish(PUBSUB_TOPIC_TOPOLOGY, data)
+      await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_TOPOLOGY, data)
     }, 60000)
 
-    return libp2pNode
+    return heliaNode
   }
 
 </script>
 
-{#await init() then libp2pNode}
+{#await init() then heliaNode}
   <Route path="/"><Home /></Route>
   <!--<Route path="/items"><Items /></Route>-->
   <!--<Route path="/bingo"><Bingo /></Route>-->
   <!--<Route path="/offer"><Offer {connection}/></Route>-->
-  <Route path="/scan"><Scan { libp2pNode } /></Route>
+  <Route path="/scan"><Scan { heliaNode } /></Route>
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
-  <Route path="/connected"><Connected { libp2pNode }/></Route>
-  <Route path="/topology"><Topology { libp2pNode }/></Route>
-  <Route path="/map"><Map { libp2pNode }/></Route>
-  <Route path="/copypaste"><Copypaste { libp2pNode }/></Route>
+  <Route path="/connected"><Connected { heliaNode }/></Route>
+  <Route path="/topology"><Topology { heliaNode }/></Route>
+  <Route path="/map"><Map { heliaNode }/></Route>
+  <Route path="/copypaste"><Copypaste { heliaNode }/></Route>
 {/await}
 
 <!--

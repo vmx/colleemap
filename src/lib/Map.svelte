@@ -13,13 +13,20 @@
   import * as Block from 'multiformats/block'
   import * as codec from '@ipld/dag-cbor'
   import { sha256 as hasher } from 'multiformats/hashes/sha2'
+  import { dagCbor } from '@helia/dag-cbor'
 
+  import { PUBSUB_TOPIC_CIDS } from '../constants.js'
   import kosovoData from '../kosovo.pmtiles'
 
-  export let libp2pNode
+  export let heliaNode
 
   let map
   let activeDrawing = false
+
+
+  let helia
+  const storage = dagCbor(heliaNode)
+
 
   const backgroundLayer = new VectorTile({
     declutter: true,
@@ -66,17 +73,26 @@
     let geojsonFormat = new GeoJSON()
     const features = drawingSource.getFeatures()
     console.log('vmx: syncing features:', features)
-    let blocks = await Promise.all(features.map(async (feature) => {
-      //console.log('vmx: feature geom:', geojsonFormat.writeFeature(feature))
+    //let blocks = await Promise.all(features.map(async (feature) => {
+    //  //console.log('vmx: feature geom:', geojsonFormat.writeFeature(feature))
+    //  let geoJson = geojsonFormat.writeFeatureObject(feature)
+    //  console.log('vmx: feature geojson:', geoJson)
+    //  let block = await Block.encode({ value: geoJson, codec, hasher })
+    //  return block
+    //}))
+    //console.log('vmx: blocks:', blocks)
+    let cids = await Promise.all(features.map(async (feature) => {
       let geoJson = geojsonFormat.writeFeatureObject(feature)
-      console.log('vmx: feature geojson:', geoJson)
-      let block = await Block.encode({ value: geoJson, codec, hasher })
-      return block
+      console.log('vmx: geojson:', geoJson)
+      return storage.add(geoJson)
     }))
-    console.log('vmx: blocks:', blocks)
+    console.log('vmx: cids:', cids)
+    // Create a single root CID, pointing to all others.
+    const rootCid = await storage.add(cids)
+    await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_CIDS, rootCid.bytes)
   }
 
-  const initMap = (node) => {
+  const initMap = async (node) => {
     map = new Map({
       layers: [backgroundLayer, drawingLayer],
       target: node.id,
