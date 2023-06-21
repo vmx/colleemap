@@ -100,7 +100,7 @@
 <div id="container">
   <div>
     <p><a href="/scan">Scan another peer</a></p>
-    <p><a href="/connected">Chat</a></p>
+    <p><a href="/topology">Topology</a></p>
     <button on:click|preventDefault={toggleDrawing} class:active={activeDrawing}>Draw</button>
     <button on:click|preventDefault={toggleDelete} class:active={activeDelete}>Delete</button>
     <button on:click|preventDefault={syncFeatures}>Sync features</button>

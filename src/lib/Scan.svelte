@@ -11,9 +11,8 @@
   import { router } from 'tinro'
 
   import { PUBSUB_TOPIC_DATA } from '../constants.js'
-  import { name } from '../stores.js'
 
-  export let libp2pNode
+  export let heliaNode
 
   // Multiaddress protocol used to transmit custom information.
   const MEMORY = 777
@@ -37,8 +36,6 @@
   //let scanState = "scanned"
   /// The parsed data of a scan.
   let parsed
-
-  console.log('vmx: name:', $name)
 
   const waitForPeersSubscribed = (peer, numPeers, topic) => {
     return new Promise((resolve, _reject) => {
@@ -184,10 +181,10 @@
     scanState = "connecting"
 
     const toDialPeerIdString = parsed[0].getPeerId()
-    console.log('vmx: own PeerId:', libp2pNode.peerId.toString())
+    console.log('vmx: own PeerId:', heliaNode.libp2p.peerId.toString())
 
     let addresses
-    if (libp2pNode.peerId.toString() > toDialPeerIdString) {
+    if (heliaNode.libp2p.peerId.toString() > toDialPeerIdString) {
       addresses = parsed.filter((address) => {
         return address.stringTuples().some(([protocol, value]) => {
           return protocol == MEMORY && value.startsWith('initiator')
@@ -204,18 +201,18 @@
     // TODO vmx: This seems to work, let's see if there's a better way.
     const toDialPeerId = peerIdFromString(toDialPeerIdString)
     console.log('vmx: about to dial')
-    const connection = await libp2pNode.dial(addresses[0])
+    const connection = await heliaNode.libp2p.dial(addresses[0])
     //await Promise.any(connections)
     console.log('vmx: dial finished awaiting')
 
-    const numPeers = await waitForPeersSubscribed(libp2pNode, 1, PUBSUB_TOPIC_DATA)
+    const numPeers = await waitForPeersSubscribed(heliaNode.libp2p, 1, PUBSUB_TOPIC_DATA)
     console.log('vmx: waited for subscribed peers complete:', numPeers)
 
-    router.goto('/connected')
+    router.goto('/map')
   }
 
   let data = async () => {
-    const addresses = await libp2pNode.getMultiaddrs()
+    const addresses = await heliaNode.libp2p.getMultiaddrs()
     console.log('vmx: offer: addresses:', JSON.stringify(addresses))
     const json = addressesToJson(addresses)
     console.log('vmx: offer: qr code data2:', JSON.stringify(json).length, json)

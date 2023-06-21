@@ -299,11 +299,11 @@
 </script>
 
 {#await init() then { heliaNode, map }}
-  <Route path="/"><Home /></Route>
+  <!--<Route path="/"><Home /></Route>-->
   <!--<Route path="/items"><Items /></Route>-->
   <!--<Route path="/bingo"><Bingo /></Route>-->
   <!--<Route path="/offer"><Offer {connection}/></Route>-->
-  <Route path="/scan"><Scan { heliaNode } /></Route>
+  <Route path="/"><Scan { heliaNode } /></Route>
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <Route path="/connected"><Connected { heliaNode }/></Route>
     <Route path="/topology"><Topology { heliaNode }/></Route>

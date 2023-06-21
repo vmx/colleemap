@@ -12,8 +12,6 @@
 
   import topology from './topology-instance.js'
 
-  export let libp2pNode
-
   const initD3 = (nodes, links) => {
     const svg = select('svg')
     const { width, height } = svg.node().getBoundingClientRect()
@@ -83,7 +81,7 @@
 <div id="container">
   <div>
     <p><a href="/scan">Scan another peer</a></p>
-    <p><a href="/connected">Chat</a></p>
+    <p><a href="/map">Map</a></p>
   </div>
   <svg></svg>
 </div>
