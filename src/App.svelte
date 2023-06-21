@@ -30,7 +30,6 @@
   import { PUBSUB_TOPIC_CIDS, PUBSUB_TOPIC_DATA, PUBSUB_TOPIC_TOPOLOGY } from './constants.js'
   import { messages } from './stores.js'
   import topology from './lib/topology-instance.js'
-  import kosovoData from './kosovo.pmtiles'
 
   import { Map as OlMap, View } from "ol";
   import VectorTile from "ol/layer/VectorTile";
@@ -107,7 +106,7 @@
       declutter: true,
       source: new PMTilesVectorSource({
         //url: "https://r2-public.protomaps.com/protomaps-sample-datasets/nz-buildings-v3.pmtiles",
-        url: kosovoData,
+        url: '/kosovo.pmtiles',
         attributions: ["Map data © OpenStreetMap contributors (ODbL)"]
       }),
       style: new Style({

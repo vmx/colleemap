@@ -17,7 +17,6 @@
   import Select from 'ol/interaction/Select'
 
   import { PUBSUB_TOPIC_CIDS } from '../constants.js'
-  //import kosovoData from '../kosovo.pmtiles'
 
   export let heliaNode
   export let map
