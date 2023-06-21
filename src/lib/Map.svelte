@@ -32,6 +32,8 @@
   const drawingInteraction = new Draw({
     source: map.drawingSource,
     type: 'Circle',
+    // TODO vmx 2023-06-21: find a way to make it non-free hand on non-touch devices
+    freehand: true,
     geometryFunction: createRegularPolygon(6),
   })
 
