@@ -30,6 +30,7 @@
   import { PUBSUB_TOPIC_CIDS, PUBSUB_TOPIC_DATA, PUBSUB_TOPIC_TOPOLOGY } from './constants.js'
   import { messages } from './stores.js'
   import topology from './lib/topology-instance.js'
+  import Main from './lib/Main.svelte'
 
   import { Map as OlMap, View } from "ol";
   import VectorTile from "ol/layer/VectorTile";
@@ -306,8 +307,9 @@
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <Route path="/connected"><Connected { heliaNode }/></Route>
     <Route path="/topology"><Topology { heliaNode }/></Route>
-    <Route path="/map"><Map { heliaNode } { map }/></Route>
-  <Route path="/copypaste"><Copypaste { heliaNode }/></Route>
+    <Route path="/map"><Map { heliaNode } { map } /></Route>
+  <Route path="/copypaste"><Copypaste { heliaNode } /></Route>
+  <Route path="/main"><Main /></Route>
 {/await}
 
 <!--
