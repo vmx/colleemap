@@ -16,9 +16,6 @@
   import { createHelia } from 'helia'
   import { dagCbor } from '@helia/dag-cbor'
   import { CID } from 'multiformats/cid'
-  import GeometryCollection from 'ol/geom/GeometryCollection'
-  import GeoJSON from 'ol/format/GeoJSON'
-  import Feature from 'ol/Feature'
 
   import Home from './lib/Home.svelte'
   //import Items from './lib/Items.svelte'
@@ -33,7 +30,21 @@
   import { PUBSUB_TOPIC_CIDS, PUBSUB_TOPIC_DATA, PUBSUB_TOPIC_TOPOLOGY } from './constants.js'
   import { messages } from './stores.js'
   import topology from './lib/topology-instance.js'
+  import kosovoData from './kosovo.pmtiles'
 
+  import { Map as OlMap, View } from "ol";
+  import VectorTile from "ol/layer/VectorTile";
+  import { PMTilesVectorSource } from "ol-pmtiles";
+  import { Style, Stroke, Fill } from 'ol/style';
+  import { useGeographic } from 'ol/proj';
+  import { Vector as VectorSource } from 'ol/source';
+  import { Vector as VectorLayer } from 'ol/layer';
+  import Draw from 'ol/interaction/Draw'
+  import Polygon from 'ol/geom/Polygon'
+  import GeoJSON from 'ol/format/GeoJSON'
+  import { createRegularPolygon } from 'ol/interaction/Draw';
+  import GeometryCollection from 'ol/geom/GeometryCollection'
+  import Feature from 'ol/Feature'
 
   import './general.css'
   import './split.css'
@@ -74,7 +85,61 @@
 
   router.mode.hash()
 
-  //let libp2pNode
+
+  const peersSource = new VectorSource({ wrapX: false })
+  const peersLayer = new VectorLayer({
+    source: peersSource,
+      style: new Style({
+        stroke: new Stroke({
+          color: "red",
+          width: 5,
+        }),
+        fill: new Fill({
+          color: "rgba(20,20,20,0.9)",
+        })
+      })
+  })
+
+  const initMap = async () => {
+    useGeographic()
+
+    const backgroundLayer = new VectorTile({
+      declutter: true,
+      source: new PMTilesVectorSource({
+        //url: "https://r2-public.protomaps.com/protomaps-sample-datasets/nz-buildings-v3.pmtiles",
+        url: kosovoData,
+        attributions: ["Map data © OpenStreetMap contributors (ODbL)"]
+      }),
+      style: new Style({
+        stroke: new Stroke({
+          color: "gray",
+          width: 1,
+        }),
+        fill: new Fill({
+          color: "rgba(20,20,20,0.9)",
+        })
+      })
+    })
+
+    const drawingSource = new VectorSource({ wrapX: false })
+    const drawingLayer = new VectorLayer({
+      source: drawingSource,
+    });
+
+    const map = new OlMap({
+      layers: [backgroundLayer, peersLayer, drawingLayer],
+      view: new View({
+        center: [20.739167, 42.212778],
+        zoom: 12
+      })
+    })
+    // Add a reference to the drawing source, so that we can later
+    // enable/disable the drawing interaction on it.
+    map.drawingSource = drawingSource
+    return map
+  }
+
+
 
   // The idea of the init function is based on
   // https://stackoverflow.com/questions/73940340/use-promise-result-for-binding/73940618#73940618
@@ -105,6 +170,7 @@
     //  }
     //})
 
+    // TODO vmx 2023-06-21: use persisted blockstore
     const heliaNode = await createHelia({
       libp2p: {
         transports: [
@@ -136,22 +202,29 @@
           // collection. Use the PeerId for it, as we know it's unique.
           const featureId = message.detail.from.toString()
 
+          // When features are synchronized, first remove the old copy, then
+          // add the new ones.
+          const oldCollection = peersSource.getFeatureById(featureId)
+          peersSource.removeFeature(oldCollection)
+
           // We pubsub binary encoded CIDs.
           const rootCid = CID.decode(message.detail.data)
           console.log(`vmx: root CID received (${rootCid})`)
           const rootData = await storage.get(rootCid)
-          const features = await Promise.all(rootData.map(async (cid) => {
+          const geometries = await Promise.all(rootData.map(async (cid) => {
             const geoJson = await storage.get(cid)
-            return geoJsonFormat.readFeature(geoJson)
+            const feature = geoJsonFormat.readFeature(geoJson)
+            return feature.getGeometry()
           }))
           // Create a single feature, a geometry collection, out of all
           // features. This way we can update the data easily when we get it
           // from a peer.
-          const collection = new Feature(new GeometryCollection(features))
+          const collection = new Feature(new GeometryCollection(geometries))
           // In order to be able to identify features, set an ID for the whole
           // collection. Use the PeerId for it, as we know it's unique.
           collection.setId(featureId)
           console.log('vmx: combined feature:', collection.getId(), collection);
+          peersSource.addFeature(collection)
           break
         case PUBSUB_TOPIC_DATA:
           console.log('vmx: message received:', message)
@@ -211,6 +284,8 @@
     //  )
     //})
 
+    const map = await initMap()
+
     // Announce every minute all peers a peer is connected too.
     setInterval(async () => {
       const peers = heliaNode.libp2p.getPeers().map((peer) => peer.toString())
@@ -218,12 +293,12 @@
       await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_TOPOLOGY, data)
     }, 60000)
 
-    return heliaNode
+    return { heliaNode, map }
   }
 
 </script>
 
-{#await init() then heliaNode}
+{#await init() then { heliaNode, map }}
   <Route path="/"><Home /></Route>
   <!--<Route path="/items"><Items /></Route>-->
   <!--<Route path="/bingo"><Bingo /></Route>-->
@@ -231,8 +306,8 @@
   <Route path="/scan"><Scan { heliaNode } /></Route>
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <Route path="/connected"><Connected { heliaNode }/></Route>
-  <Route path="/topology"><Topology { heliaNode }/></Route>
-  <Route path="/map"><Map { heliaNode }/></Route>
+    <Route path="/topology"><Topology { heliaNode }/></Route>
+    <Route path="/map"><Map { heliaNode } { map }/></Route>
   <Route path="/copypaste"><Copypaste { heliaNode }/></Route>
 {/await}
 

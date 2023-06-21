@@ -14,45 +14,23 @@
   import * as codec from '@ipld/dag-cbor'
   import { sha256 as hasher } from 'multiformats/hashes/sha2'
   import { dagCbor } from '@helia/dag-cbor'
+  import Select from 'ol/interaction/Select'
 
   import { PUBSUB_TOPIC_CIDS } from '../constants.js'
-  import kosovoData from '../kosovo.pmtiles'
+  //import kosovoData from '../kosovo.pmtiles'
 
   export let heliaNode
+  export let map
 
-  let map
+  //let map
   let activeDrawing = false
+  let activeDelete = false
 
 
-  let helia
   const storage = dagCbor(heliaNode)
 
-
-  const backgroundLayer = new VectorTile({
-    declutter: true,
-    source: new PMTilesVectorSource({
-      //url: "https://r2-public.protomaps.com/protomaps-sample-datasets/nz-buildings-v3.pmtiles",
-      url: kosovoData,
-      attributions: ["Map data © OpenStreetMap contributors (ODbL)"]
-    }),
-    style: new Style({
-      stroke: new Stroke({
-        color: "gray",
-        width: 1,
-      }),
-      fill: new Fill({
-        color: "rgba(20,20,20,0.9)",
-      })
-    })
-  })
-
-
-  const drawingSource = new VectorSource({ wrapX: false })
-  const drawingLayer = new VectorLayer({
-    source: drawingSource,
-  });
   const drawingInteraction = new Draw({
-    source: drawingSource,
+    source: map.drawingSource,
     type: 'Circle',
     geometryFunction: createRegularPolygon(6),
   })
@@ -69,9 +47,31 @@
     }
   }
 
+  // TODO vmx 2023-06-21: it would be nicer if the feature would be selected
+  // first and then deleted on a second click.
+  const selectInteraction = new Select({
+    wrapX: false,
+  });
+
+  selectInteraction.on('select', (event) => {
+    console.log('vmx: feature selected:', event)
+    let feature = event.selected[0]
+    map.drawingSource.removeFeature(feature)
+  })
+
+  const toggleDelete = () => {
+    const interaction = map.removeInteraction(selectInteraction)
+    if (interaction === undefined) {
+      map.addInteraction(selectInteraction)
+      activeDelete = true;
+    } else {
+      activeDelete = false;
+    }
+  }
+
   const syncFeatures = async () => {
     let geojsonFormat = new GeoJSON()
-    const features = drawingSource.getFeatures()
+    const features = map.drawingSource.getFeatures()
     console.log('vmx: syncing features:', features)
     //let blocks = await Promise.all(features.map(async (feature) => {
     //  //console.log('vmx: feature geom:', geojsonFormat.writeFeature(feature))
@@ -92,26 +92,9 @@
     await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_CIDS, rootCid.bytes)
   }
 
-  const initMap = async (node) => {
-    map = new Map({
-      layers: [backgroundLayer, drawingLayer],
-      target: node.id,
-      view: new View({
-        center: [20.739167, 42.212778],
-        zoom: 12
-      })
-    })
-
-    return {
-      destory() {
-        if (map) {
-          map.setTarget(undefined)
-        }
-      }
-    }
+  const setMap = (node) => {
+    map.setTarget(node.id)
   }
-
-  useGeographic();
 </script>
 
 <div id="container">
@@ -119,9 +102,10 @@
     <p><a href="/scan">Scan another peer</a></p>
     <p><a href="/connected">Chat</a></p>
     <button on:click|preventDefault={toggleDrawing} class:active={activeDrawing}>Draw</button>
+    <button on:click|preventDefault={toggleDelete} class:active={activeDelete}>Delete</button>
     <button on:click|preventDefault={syncFeatures}>Sync features</button>
   </div>
-  <div id="map" use:initMap></div>
+  <div id="mymap" use:setMap></div>
 </div>
 
 <style>
