@@ -119,6 +119,12 @@
 
   const setMap = (node) => {
     map.setTarget(node.id)
+
+    return {
+      destroy() {
+        map.setTarget(null)
+      }
+    }
   }
 </script>
 
