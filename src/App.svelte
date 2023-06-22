@@ -91,11 +91,11 @@
     source: peersSource,
       style: new Style({
         stroke: new Stroke({
-          color: "red",
-          width: 5,
+          color: 'rgba(89,53,16,0.8)',
+          width: 1,
         }),
         fill: new Fill({
-          color: "rgba(20,20,20,0.9)",
+          color: 'rgba(246,158,02,0.5)',
         })
       })
   })
@@ -112,11 +112,11 @@
       }),
       style: new Style({
         stroke: new Stroke({
-          color: "gray",
+          color: 'gray',
           width: 1,
         }),
         fill: new Fill({
-          color: "rgba(20,20,20,0.9)",
+          color: 'rgba(20,20,20,0.9)',
         })
       })
     })
@@ -124,6 +124,15 @@
     const drawingSource = new VectorSource({ wrapX: false })
     const drawingLayer = new VectorLayer({
       source: drawingSource,
+      style: new Style({
+        stroke: new Stroke({
+          color: 'rgba(34,85,179,0.9)',
+          width: 1,
+        }),
+        fill: new Fill({
+          color: 'rgba(222,222,222,0.7)',
+        })
+      })
     });
 
     const map = new OlMap({
@@ -182,6 +191,9 @@
         },
         services: {
           pubsub: gossipsub({
+            // TODO vmx 2023-06-22: That's nice for testing, but remove it
+            // once things work. Double-check that the topology view sitll
+            // works.
             emitSelf: true
           }),
           identify: identifyService()
