@@ -208,7 +208,7 @@
     const numPeers = await waitForPeersSubscribed(heliaNode.libp2p, 1, PUBSUB_TOPIC_DATA)
     console.log('vmx: waited for subscribed peers complete:', numPeers)
 
-    router.goto('/map')
+    router.goto('/main')
   }
 
   let data = async () => {
