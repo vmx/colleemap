@@ -186,6 +186,8 @@
           webRTCNoNat(),
         ],
         connectionEncryption: [plaintext()],
+        // Make sure that it doesn't call to the outside.
+        contentRouters: [],
         transportManager: {
           faultTolerance: FaultTolerance.NO_FATAL
         },
