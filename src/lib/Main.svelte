@@ -19,11 +19,13 @@
     padding: 0;
   }
   #container > div a {
-    border: 3vmin solid #fff;
     display: table-cell;
     font-size: 10vmin;
     text-align: center;
     vertical-align: middle;
+  }
+  #container > div > p > a {
+    border: 3vmin solid #fff;
   }
   #container > div > p {
     display: table-row;

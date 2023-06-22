@@ -138,9 +138,9 @@
   }
 
   button {
+    background-color: #f69e02;
     border: none;
   }
-
 
   #actions {
     display: grid;
@@ -150,7 +150,6 @@
 
   #actions > * {
     align-items: center;
-    background-color: #f69e02;
     display: grid;
     font-size: 5vmin;
     justify-items: center;

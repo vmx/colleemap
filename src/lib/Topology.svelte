@@ -59,7 +59,7 @@
     simulation.nodes(nodes)
     simulation.force('link').links(links)
 
-    for (let ii = 0; ii < 20; ii++) {
+    for (let ii = 0; ii < 40; ii++) {
       simulation.tick()
     }
 
@@ -80,8 +80,24 @@
 
 <div id="container">
   <div>
-    <p><a href="/scan">Scan another peer</a></p>
-    <p><a href="/map">Map</a></p>
+    <a href="/main">Back</a>
   </div>
   <svg></svg>
 </div>
+
+
+<style>
+  a {
+    text-decoration: none;
+  }
+
+  #container > div  {
+    display: grid;
+  }
+  #container > div > a {
+    align-items: center;
+    display: grid;
+    font-size: 15vmin;
+    justify-items: center;
+  }
+</style>
