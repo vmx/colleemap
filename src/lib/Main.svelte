@@ -2,7 +2,7 @@
 </script>
 
 <div id="container">
-  <div><a href="/scan">Scan another peer</a></div>
+  <div><a href="/">Scan another peer</a></div>
   <div>
     <p><a href="/map">Map</a></p>
     <p><a href="/topology">Topology</a></p>

@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
 
   import { multiaddr as Multiaddr } from '@multiformats/multiaddr'
   import { base64url } from "multiformats/bases/base64"
@@ -36,6 +36,8 @@
   //let scanState = "scanned"
   /// The parsed data of a scan.
   let parsed
+  /// Make the QR scanner a global variable, so that it can be destroyed.
+  let qrScanner
 
   const waitForPeersSubscribed = (peer, numPeers, topic) => {
     return new Promise((resolve, _reject) => {
@@ -155,7 +157,7 @@
   }
 
   onMount(async () => {
-    const qrScanner = new QrScanner(
+    qrScanner = new QrScanner(
       video,
       async (result) => {
         qrScanner.stop()
@@ -175,6 +177,11 @@
     )
     await qrScanner.setCamera('environment')
     qrScanner.start()
+  })
+
+  onDestroy(() => {
+    qrScanner.destroy();
+    qrScanner = null;
   })
 
   let connect = async () => {

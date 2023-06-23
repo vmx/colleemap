@@ -4,7 +4,7 @@ body {
   padding: 0;
 }
 
-a, a:visited {
+a, a:visited, a:link {
   background-color: #f69e02;
   color: #000;
   text-decoration: none;

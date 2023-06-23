@@ -151,7 +151,20 @@
   #actions {
     display: grid;
     gap: 2vmin;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  @media (orientation: landscape) {
+    #actions {
+      grid-auto-flow: row;
+    }
+  }
+
+  @media (orientation: portrait) {
+    #actions {
+      grid-auto-flow: column;
+    }
   }
 
   #actions > * {
