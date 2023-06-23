@@ -310,6 +310,11 @@
 
 </script>
 
+<svelte:head>
+  <title>Colleemap - Collaborative mapping without internet connectivity</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+</svelte:head>
+
 {#await init() then { heliaNode, map }}
   <!--<Route path="/"><Home /></Route>-->
   <!--<Route path="/items"><Items /></Route>-->
@@ -324,11 +329,3 @@
   <Route path="/main"><Main /></Route>
 {/await}
 
-<!--
-<style>
-:global(body) {
-  margin: 0;
-  padding: 0;
-}
-</style>
--->
