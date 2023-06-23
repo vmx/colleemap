@@ -192,12 +192,7 @@
           faultTolerance: FaultTolerance.NO_FATAL
         },
         services: {
-          pubsub: gossipsub({
-            // TODO vmx 2023-06-22: That's nice for testing, but remove it
-            // once things work. Double-check that the topology view sitll
-            // works.
-            emitSelf: true
-          }),
+          pubsub: gossipsub(),
           identify: identifyService()
         },
         connectionManager: {
