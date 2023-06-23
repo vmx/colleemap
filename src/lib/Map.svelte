@@ -68,6 +68,7 @@
   // first and then deleted on a second click.
   const selectInteraction = new Select({
     wrapX: false,
+    layers: [map.drawingLayer]
   });
 
   selectInteraction.on('select', (event) => {

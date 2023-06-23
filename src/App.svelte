@@ -145,6 +145,9 @@
     // Add a reference to the drawing source, so that we can later
     // enable/disable the drawing interaction on it.
     map.drawingSource = drawingSource
+    // Add a reference to the drawing layer, so that we can restrict the select
+    // interaction on it.
+    map.drawingLayer = drawingLayer
     return map
   }
 
