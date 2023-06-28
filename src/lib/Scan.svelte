@@ -28,8 +28,8 @@
   let video
   /// The scan state defines which elements are displayed.
   ///
-  ///  - "scaner": QR-code scanner.
-  ///  - "scaned": Information when the QR-code was successfully scanned.
+  ///  - "scanner": QR-code scanner.
+  ///  - "scanned": Information when the QR-code was successfully scanned.
   ///  - "connecting": When clicked after a successful scan and trying to
   ///    connect.
   let scanState = "scanner"
