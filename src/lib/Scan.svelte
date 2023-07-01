@@ -184,6 +184,13 @@
     qrScanner = null;
   })
 
+  let changeCamera = async () => {
+    const cameras = await QrScanner.listCameras();
+    console.log('cameras:', cameras)
+    const newCamera = cameras[Math.floor(Math.random() * cameras.length)];
+    qrScanner.setCamera(newCamera.id)
+  }
+
   let connect = async () => {
     scanState = "connecting"
 
@@ -230,7 +237,7 @@
 
 <div id="container">
 {#if scanState === "scanner"}
-  <video bind:this={video}></video>
+  <video bind:this={video} on:click={changeCamera}></video>
 {:else if scanState === "scanned"}
   <div class="connect" on:click={connect}>
     <p>Once the other peer has scanned your code, click here to</p>
