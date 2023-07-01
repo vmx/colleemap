@@ -26,6 +26,7 @@
   const DNS6 = 55
 
   let video
+  let cameraId
   /// The scan state defines which elements are displayed.
   ///
   ///  - "scanner": QR-code scanner.
@@ -175,7 +176,9 @@
         highlightCodeOutline: true
       }
     )
-    await qrScanner.setCamera('environment')
+    const cameras = await QrScanner.listCameras(true)
+    cameraId = cameras[0].id
+    await qrScanner.setCamera(cameraId)
     qrScanner.start()
   })
 
@@ -187,8 +190,10 @@
   let changeCamera = async () => {
     const cameras = await QrScanner.listCameras();
     console.log('cameras:', cameras)
-    const newCamera = cameras[Math.floor(Math.random() * cameras.length)];
-    qrScanner.setCamera(newCamera.id)
+    const cameraIdx = cameras.findIndex((cam) => cam.id === cameraId)
+    const newCamera = cameras[cameraIdx + 1 < cameras.length ? cameraIdx + 1 : 0]
+    cameraId = newCamera.id
+    qrScanner.setCamera(cameraId)
   }
 
   let connect = async () => {
