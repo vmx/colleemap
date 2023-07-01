@@ -5,7 +5,7 @@ import { Topology, PeersQueue } from '../src/topology.js'
 test('Topology', (assert) => {
   const topology = new Topology()
 
-  assert.test('Topology add connection', (asssert) => {
+  assert.test('Topology add connection', (assert) => {
     topology.addConnection('peerA', 'peerB')
     assert.equal(topology.nodes, [
       { id: 'peerA' },
@@ -76,7 +76,7 @@ test('PeersQueue', (assert) => {
   const peerA = queue.pop()
   assert.equal(peerA, 'peerB')
 
-  // Add the peer we just proccessed back to the queue. As it was processed
+  // Add the peer we just processed back to the queue. As it was processed
   // already, it should not become part of the queue again.
   queue.add(peerA)
   const peerB = queue.pop()
