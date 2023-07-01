@@ -1,6 +1,20 @@
 Collaborative mapping without internet connectivity
 ===================================================
 
+How to development
+-------
+
+```
+git clone https://github.com/vmx/colleemap.git
+cd colleemap
+npm ci
+npm run dev
+```
+
+Open https://localhost:5173/
+
+**NOTE**: It's `https://`, not `http://`!
+
 License
 -------
 
