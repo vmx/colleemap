@@ -32,8 +32,6 @@
     "it-pipe": "^3.0.1",
     "libp2p": "^0.45.2",
     "multiformats": "^11.0.2",
-    "ol": "^7.4.0",
-    "ol-pmtiles": "^0.1.0",
     "pta": "^1.2.0",
     "qr-scanner": "^1.4.1",
     "svelte-qr": "^1.0.0",

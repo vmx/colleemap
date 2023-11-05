@@ -4,7 +4,7 @@
 <div id="container">
   <div><a href="/">Scan another peer</a></div>
   <div>
-    <p><a href="/map">Map</a></p>
+    <p><a href="/bingo">Bingo</a></p>
     <p><a href="/topology">Topology</a></p>
   </div>
 </div>
