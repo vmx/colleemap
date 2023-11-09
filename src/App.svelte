@@ -26,8 +26,13 @@
   import Connected from './lib/Connected.svelte'
   import Topology from './lib/Topology.svelte'
   import Copypaste from './lib/Copypaste.svelte'
-  import { PUBSUB_TOPIC_CIDS, PUBSUB_TOPIC_DATA, PUBSUB_TOPIC_TOPOLOGY } from './constants.js'
-  import { messages } from './stores.js'
+  import {
+    PUBSUB_TOPIC_CIDS,
+    PUBSUB_TOPIC_DATA,
+    PUBSUB_TOPIC_ITEMS,
+    PUBSUB_TOPIC_TOPOLOGY
+  } from './constants.js'
+  import { messages, selectedStore } from './stores.js'
   import topology from './lib/topology-instance.js'
   import Main from './lib/Main.svelte'
   import Bingo from './lib/Bingo.svelte'
@@ -53,7 +58,8 @@
           faultTolerance: FaultTolerance.NO_FATAL
         },
         services: {
-          pubsub: gossipsub(),
+          pubsub: gossipsub({emitSelf: true}),
+          //pubsub: gossipsub(),
           identify: identifyService()
         },
         connectionManager: {
@@ -104,6 +110,36 @@
           $messages = [...$messages, text]
           console.log('vmx: messages:', $messages)
           break
+        case PUBSUB_TOPIC_ITEMS:
+          console.log('vmx: app: received item message:', message)
+          const data = JSON.parse(new TextDecoder().decode(message.detail.data))
+          console.log('vmx: app: received item message: selected: data', data)
+          //const type = message.detail.data.type
+          //const id = message.detail.data.id
+          const peerId = message.detail.from.toString()
+          //const peerId = message.detail.from
+          switch (data.type) {
+            case 'selected':
+              console.log('vmx: app: received item message: selected: id, peerId', data.id, peerId)
+              // Push the item to the store.
+              if ($selectedStore[data.id] === undefined) {
+                $selectedStore[data.id] = [peerId]
+              } else {
+                if (!$selectedStore[data.id].includes(peerId)) {
+                  $selectedStore[data.id] = [...$selectedStore[data.id], peerId]
+                }
+              }
+              break
+            case 'deselected':
+              if ($selectedStore[data.id] !== undefined) {
+                // Remove the current PeerID from the list.
+                $selectedStore[data.id] = $selectedStore[data.id].filter(
+                  (selectedPeerId) => { return selectedPeerId !== peerId }
+                )
+              }
+              break
+          }
+          break
         case PUBSUB_TOPIC_TOPOLOGY:
           const peers = JSON.parse(uint8ArrayToString(message.detail.data))
           console.log('vmx: message received: topology: from, to', message.detail.from.toString(), peers)
@@ -119,6 +155,7 @@
     heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_CIDS)
     heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_DATA)
     heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_TOPOLOGY)
+    heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_ITEMS)
 
     heliaNode.libp2p.addEventListener('peer:discovery', (evt) => {
       console.log('vmx: Discovered %s', evt.detail.id.toString()) // Log discovered peer

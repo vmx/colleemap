@@ -10,7 +10,7 @@
   import QR from 'svelte-qr'
   import { router } from 'tinro'
 
-  import { PUBSUB_TOPIC_DATA } from '../constants.js'
+  import { PUBSUB_TOPIC_ITEMS } from '../constants.js'
 
   export let heliaNode
 
@@ -224,7 +224,7 @@
     //await Promise.any(connections)
     console.log('vmx: dial finished awaiting')
 
-    const numPeers = await waitForPeersSubscribed(heliaNode.libp2p, 1, PUBSUB_TOPIC_DATA)
+    const numPeers = await waitForPeersSubscribed(heliaNode.libp2p, 1, PUBSUB_TOPIC_ITEMS)
     console.log('vmx: waited for subscribed peers complete:', numPeers)
 
     router.goto('/main')
