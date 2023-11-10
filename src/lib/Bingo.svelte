@@ -28,26 +28,22 @@
   //  return output
   //}
 
-  // TODO vmx 2023-11-10: use the bytes of the PeerID instead of a pseudo random number generator.
   // The code is based on
   // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array/46545530#46545530
   // https://stackoverflow.com/questions/16801687/javascript-random-ordering-with-seed/53758827#53758827
-  const shuffle = (input, seed) => {
+  const shuffle = (input) => {
+    // Use the random bytes of the PeerID as randomness.
+    const randomBytes = heliaNode.libp2p.peerId.multihash.digest.slice(4)
     return input
       .map((value, ii) => {
-        // Create a random number with a seed.
-        const xx = Math.sin(seed + ii) * 10000
-        const random = xx - Math.floor(xx)
-
-        return ({ value, sort: random })
+        return ({ value, sort: randomBytes[ii] })
       })
       .sort((a, b) => a.sort - b.sort)
       .map(({ value }) => value)
   }
 
   const storage = dagCbor(heliaNode)
-  // TODO vmx 2023-11-08: use PeerID as seed
-  const items = shuffle(ITEMS, 123)
+  const items = shuffle(ITEMS)
   console.log('items:', items)
   console.log('ITEMS:', ITEMS)
 
