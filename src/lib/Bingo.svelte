@@ -188,12 +188,17 @@
     text-decoration: none;
   }
 
+  #container > div {
+    overflow: auto;
+  }
+
   table {
     height: 100%;
     width: 100%;
     background-color: #ddd;
     border-collapse: separate;
     border-spacing: 2px;
+    font-size: 2.5vmin;
   }
 
   table tr {
