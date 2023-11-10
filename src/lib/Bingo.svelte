@@ -1,32 +1,10 @@
 <script>
-  //import { derived } from "svelte/store";
-
-  import { dagCbor } from '@helia/dag-cbor'
-
   import { ITEMS, PUBSUB_TOPIC_BINGO } from '../constants.js'
   import { selectedStore, winnersStore, name } from '../stores.js'
 
   export let heliaNode
 
   const peerId = heliaNode.libp2p.peerId.toString()
-
-  //// The code is based on
-  //// https://stackoverflow.com/questions/16801687/javascript-random-ordering-with-seed/53758827#53758827
-  //// https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array/6274381#6274381
-  //const shuffle = (input, seed) => {
-  //  const output = []
-  //  for (let i = input.length - 1; i > 0; i--) {
-  //    // Create a random number with a seed.
-  //    const x = Math.sin(seed) * 10000
-  //    const random = x - Math.floor(x)
-  //
-  //    // Do the shuffle.
-  //    const j = Math.floor(Math.random() * (i + 1))
-  //    //;[array[i], array[j]] = [array[j], array[i]]
-  //    ;[output[i], output[j]] = [input[j], input[i]]
-  //  }
-  //  return output
-  //}
 
   // The code is based on
   // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array/46545530#46545530
@@ -42,7 +20,6 @@
       .map(({ value }) => value)
   }
 
-  const storage = dagCbor(heliaNode)
   const items = shuffle(ITEMS)
   console.log('items:', items)
   console.log('ITEMS:', ITEMS)
@@ -64,29 +41,6 @@
     const encoded = encodeJson({ type: eventType, id: item.id })
     await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_BINGO, encoded)
   }
-
-  //const selectedItems = derived(
-  //  [selectedStore],
-  //  ([$selectedStore]) => {
-  //    return items.map((item) => {
-  //      console.log('vmx: bingo: item loop: id:', item.id)
-  //      const selectedItem = $selectedStore[item.id]
-  //      if (selectedItem !== undefined) {
-  //        // It was selected by yourself.
-  //        if (selectedItem.includes(heliaNode.libp2p.peerId)) {
-  //          // And it was selected by at least another peer.
-  //          if (selectedItem.length >= 2) {
-  //            return 'confirmed'
-  //          } else {
-  //            return 'selected'
-  //          }
-  //        }
-  //      }
-  //      return ''
-  //    })
-  //  }
-  //)
-
 
   // An array of offsets that would be a valid Bingo (a line of 5
   // subsequent horizontally, vertically or diagonally connected items)
@@ -149,7 +103,6 @@
   }
 
   let derived
-  //let youHaveWon
 
   // "selected" means that the user themself selected the item.
   // "confirmed" means that at least another peer also selected it.
@@ -178,23 +131,6 @@
       heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_BINGO, encoded)
     }
   }
-
-  //const syncFeatures = async () => {
-  //  activeSync = true
-  //  let geojsonFormat = new GeoJSON()
-  //  const features = map.drawingSource.getFeatures()
-  //  console.log('vmx: syncing features:', features)
-  //  let cids = await Promise.all(features.map(async (feature) => {
-  //    let geoJson = geojsonFormat.writeFeatureObject(feature)
-  //    console.log('vmx: geojson:', geoJson)
-  //    return storage.add(geoJson)
-  //  }))
-  //  console.log('vmx: cids:', cids)
-  //  // Create a single root CID, pointing to all others.
-  //  const rootCid = await storage.add(cids)
-  //  await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_CIDS, rootCid.bytes)
-  //}
-
 </script>
 
 <div id="container">
