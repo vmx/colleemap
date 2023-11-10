@@ -29,10 +29,10 @@
   import {
     PUBSUB_TOPIC_CIDS,
     PUBSUB_TOPIC_DATA,
-    PUBSUB_TOPIC_ITEMS,
+    PUBSUB_TOPIC_BINGO,
     PUBSUB_TOPIC_TOPOLOGY
   } from './constants.js'
-  import { messages, selectedStore } from './stores.js'
+  import { messages, selectedStore, winnersStore } from './stores.js'
   import topology from './lib/topology-instance.js'
   import Main from './lib/Main.svelte'
   import Bingo from './lib/Bingo.svelte'
@@ -110,7 +110,7 @@
           $messages = [...$messages, text]
           console.log('vmx: messages:', $messages)
           break
-        case PUBSUB_TOPIC_ITEMS:
+        case PUBSUB_TOPIC_BINGO:
           console.log('vmx: app: received item message:', message)
           const data = JSON.parse(new TextDecoder().decode(message.detail.data))
           console.log('vmx: app: received item message: selected: data', data)
@@ -138,6 +138,14 @@
                 )
               }
               break
+            case 'bingo':
+              if (!$winnersStore.includes(data.name)) {
+                // In order to not break the layout, limit the name length to
+                // 20 characters.
+                $winnersStore = [...$winnersStore, data.name.substr(0, 20)]
+              }
+              console.log('vmx: app: received bingo event from:', data.name)
+              break
           }
           break
         case PUBSUB_TOPIC_TOPOLOGY:
@@ -155,7 +163,7 @@
     heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_CIDS)
     heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_DATA)
     heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_TOPOLOGY)
-    heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_ITEMS)
+    heliaNode.libp2p.services.pubsub.subscribe(PUBSUB_TOPIC_BINGO)
 
     heliaNode.libp2p.addEventListener('peer:discovery', (evt) => {
       console.log('vmx: Discovered %s', evt.detail.id.toString()) // Log discovered peer
@@ -183,11 +191,12 @@
 </svelte:head>
 
 {#await init() then { heliaNode }}
-  <!--<Route path="/"><Home /></Route>-->
+  <Route path="/"><Home /></Route>
   <!--<Route path="/items"><Items /></Route>-->
   <!--<Route path="/bingo"><Bingo /></Route>-->
   <!--<Route path="/offer"><Offer {connection}/></Route>-->
-  <Route path="/"><Scan { heliaNode } /></Route>
+  <!--<Route path="/"><Scan { heliaNode } /></Route>-->
+  <Route path="/scan"><Scan { heliaNode } /></Route>
   <!--<Route path="/answer"><Answer {connection}/></Route>-->
   <Route path="/connected"><Connected { heliaNode }/></Route>
     <Route path="/topology"><Topology { heliaNode }/></Route>

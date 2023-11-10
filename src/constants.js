@@ -1,11 +1,12 @@
 export const PUBSUB_TOPIC_TOPOLOGY = 'topology'
 export const PUBSUB_TOPIC_DATA = 'data-exchange'
 export const PUBSUB_TOPIC_CIDS = 'cids'
-// On this topic the items a user clicks on a distributed. There are two type
-// of messages:
-//  - selected: { type: "selected", id: <the-id-of-the-item> }
-//  - deselected: { type: "deselected", id: <the-id-of-the-item> }
-export const PUBSUB_TOPIC_ITEMS = 'items'
+// On this topic all events related to the Bingo are distributed. There are
+// three types of messages:
+//  - item selected: { type: "selected", id: <the-id-of-the-item> }
+//  - item deselected: { type: "deselected", id: <the-id-of-the-item> }
+//  - bingo: { type: "bingo", name: <the-name-of-the-winner> }
+export const PUBSUB_TOPIC_BINGO = 'bingo'
 
 export const ITEMS = [
   { id: 1, text: 'Awesome' },

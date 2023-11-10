@@ -3,8 +3,8 @@
 
   import { dagCbor } from '@helia/dag-cbor'
 
-  import { ITEMS, PUBSUB_TOPIC_ITEMS } from '../constants.js'
-  import { selectedStore } from '../stores.js'
+  import { ITEMS, PUBSUB_TOPIC_BINGO } from '../constants.js'
+  import { selectedStore, winnersStore, name } from '../stores.js'
 
   export let heliaNode
 
@@ -28,6 +28,7 @@
   //  return output
   //}
 
+  // TODO vmx 2023-11-10: use the bytes of the PeerID instead of a pseudo random number generator.
   // The code is based on
   // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array/46545530#46545530
   // https://stackoverflow.com/questions/16801687/javascript-random-ordering-with-seed/53758827#53758827
@@ -50,6 +51,11 @@
   console.log('items:', items)
   console.log('ITEMS:', ITEMS)
 
+  // Encodes JSON as ArrayBuffer
+  const encodeJson = (data) => {
+    return new TextEncoder().encode(JSON.stringify(data))
+  }
+
   const itemClicked = async (item) => {
     console.log('vmx: bingi: item clcked: item:', item)
     const selectedItem = $selectedStore[item.id]
@@ -59,11 +65,8 @@
     } else {
       eventType = 'selected'
     }
-    let encoded = new TextEncoder().encode(JSON.stringify({
-      type: eventType,
-      id: item.id
-    }))
-    await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_ITEMS, encoded)
+    const encoded = encodeJson({ type: eventType, id: item.id })
+    await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_BINGO, encoded)
   }
 
   //const selectedItems = derived(
@@ -89,37 +92,95 @@
   //)
 
 
+  // An array of offsets that would be a valid Bingo (a line of 5
+  // subsequent horizontally, vertically or diagonally connected items)
+  const POSSIBLE_BINGOS = [
+    // Horizontal.
+    [0, 1, 2, 3, 4],
+    [5, 6, 7, 8, 9],
+    [10, 11, 12, 13, 14],
+    [15, 16, 17, 18, 19],
+    [20, 21, 22, 23, 24],
+    // Vertical.
+    [0, 5, 10, 15, 20],
+    [1, 6, 11, 16, 21],
+    [2, 7, 12, 17, 22],
+    [3, 8, 13, 18, 23],
+    [4, 9, 14, 19, 24],
+    // Diagonal.
+    [0, 6, 12, 18, 24],
+    [4, 8, 12, 16, 20]
+  ]
+
+  // These three consts simulate and enum containing the status of a selected
+  // item. If no-one selected it it's `NONE` if only you selected it it's
+  // `SELECTED` and if you and at least someone else selected it it's
+  // 'CONFIRMED`.
+  const SELECTED_NONE = 0
+  const SELECTED_SELECTED = 1
+  const SELECTED_CONFIRMED = 2
+
+  // Returns the status of a given value (a list of peerIds) from the
+  // `$selectedStore`.
+  const selectedItemStatus = (selectedItem) => {
+    if (selectedItem !== undefined) {
+      // It was selected by yourself.
+      if (selectedItem.includes(peerId)) {
+        // And it was selected by at least another peer.
+        if (selectedItem.length >= 2) {
+          return SELECTED_CONFIRMED
+        } else {
+          return SELECTED_SELECTED
+        }
+      }
+    }
+    return SELECTED_NONE
+  }
+
+  // Checks at the given array offsets, whether you and someone else have
+  // selected all of those items at one of the list of offsets.
+  const isBingo = (offsets) => {
+    for (const possibleBingo of offsets) {
+      const allConfirmed = possibleBingo.every((offset) => {
+        const selectedItem = $selectedStore[items[offset].id]
+        return selectedItemStatus(selectedItem) === SELECTED_CONFIRMED
+      })
+      if (allConfirmed === true) {
+        return true
+      }
+    }
+    return false
+  }
+
   let derived
+  //let youHaveWon
 
   // "selected" means that the user themself selected the item.
   // "confirmed" means that at least another peer also selected it.
   $: {
-    //for (const [id, peerIds] of Object.entries($selectedStore)) {
-    //  console.log('vmx: looping through selected items: id, peerIds:', id, peerIds)
-    //  //GO ON HERE and select those items
-    //}
-    //derived.push('')
-    //derived.push('selected')
-    console.log('vmx: bingo: selected store:', $selectedStore)
     // Loop through all items in the order they are currently displayed and
     // select them based on libp2p messages that were sent around.
     derived = items.map((item) => {
-      console.log('vmx: bingo: item loop: id:', item.id)
       const selectedItem = $selectedStore[item.id]
-      if (selectedItem !== undefined) {
-        // It was selected by yourself.
-        if (selectedItem.includes(peerId)) {
-          // And it was selected by at least another peer.
-          if (selectedItem.length >= 2) {
-            return 'confirmed'
-          } else {
-            return 'selected'
-          }
-        }
+      switch(selectedItemStatus(selectedItem)) {
+        case SELECTED_NONE:
+          return ''
+        case SELECTED_SELECTED:
+          return 'selected'
+        case SELECTED_CONFIRMED:
+          return 'confirmed'
       }
-      return ''
     })
     console.log('vmx: bing: derived:', derived)
+
+    const youHaveWon = isBingo(POSSIBLE_BINGOS)
+    if (youHaveWon) {
+      const encoded = encodeJson({ type: 'bingo', name: $name })
+      // `publish` is an async function, awaiting won't work directly, but we
+      // also don't really need to await, in this case "fire and forget" is
+      // good enough.
+      heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_BINGO, encoded)
+    }
   }
 
   //const syncFeatures = async () => {
@@ -137,7 +198,7 @@
   //  const rootCid = await storage.add(cids)
   //  await heliaNode.libp2p.services.pubsub.publish(PUBSUB_TOPIC_CIDS, rootCid.bytes)
   //}
-  //<td on:click={() => itemClicked(item)} class:selected={$selectedStore[ii].length > 0}>{item.text}</td>
+
 </script>
 
 <div id="container">
@@ -180,35 +241,19 @@
       </tr>
     </table>
   </div>
-  <div>
+  <div id="aux">
     <a href="/main">Back</a>
+    <ul>
+      {#each $winnersStore as winner}
+      <li>{winner} has a bingo!</li>
+      {/each}
+    </ul>
   </div>
 </div>
 
 <style>
   a {
     text-decoration: none;
-  }
-
-  #container > div {
-    background-color: #f69e02;
-    display: table;
-    padding: 0;
-  }
-
-  #container > div a {
-    display: table-cell;
-    font-size: 10vmin;
-    text-align: center;
-    vertical-align: middle;
-  }
-
-  #container > div > p > a {
-    border: 3vmin solid #fff;
-  }
-
-  #container > div > p {
-    display: table-row;
   }
 
   table {
@@ -233,13 +278,6 @@
     cursor: pointer;
   }
 
-  #bingo2 {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-auto-rows: 1fr;
-    margin: 0 auto;
-  }
-
   .selected {
     background-color: #f69e02;
     font-weight: bold;
@@ -249,5 +287,31 @@
     background-color: #25a;
     color: #fff;
     font-weight: bold;
+  }
+
+  #aux {
+    display: grid;
+    gap: 2vmin;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  @media (orientation: landscape) {
+    #aux {
+      grid-auto-flow: row;
+    }
+  }
+
+  @media (orientation: portrait) {
+    #aux {
+      grid-auto-flow: column;
+    }
+  }
+
+  #aux > * {
+    align-items: center;
+    display: grid;
+    font-size: 5vmin;
+    justify-items: center;
   }
 </style>
