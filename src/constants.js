@@ -26,12 +26,12 @@ export const ITEMS = [
   { id: 15, text: 'RIF' },
   { id: 16, text: 'Compensation' },
   { id: 17, text: 'Equity' },
-  { id: 18, text: '18' },
-  { id: 19, text: '19' },
-  { id: 20, text: '20' },
-  { id: 21, text: '21' },
-  { id: 22, text: '22' },
-  { id: 23, text: '23' },
-  { id: 24, text: '24' },
-  { id: 25, text: '25' }
+  { id: 18, text: 'Wrong decision' },
+  { id: 19, text: 'Honest mistake' },
+  { id: 20, text: 'IPO' },
+  { id: 21, text: 'Board of directors' },
+  { id: 22, text: 'Trust' },
+  { id: 23, text: 'Flat hierarchy' },
+  { id: 24, text: 'Distributed web' },
+  { id: 25, text: 'VC' }
 ]
