@@ -177,7 +177,7 @@
       }
     )
     const cameras = await QrScanner.listCameras(true)
-    cameraId = cameras[0].id
+    cameraId = cameras[cameras.length - 1].id
     await qrScanner.setCamera(cameraId)
     qrScanner.start()
   })
