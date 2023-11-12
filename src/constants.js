@@ -13,7 +13,7 @@ export const ITEMS = [
   { id: 2, text: 'LabWeek' },
   { id: 3, text: 'Nucleation' },
   { id: 4, text: 'Humanity' },
-  { id: 5, text: 'MelodySheep' },
+  { id: 5, text: 'Go-to-market' },
   { id: 6, text: 'PLN' },
   { id: 7, text: 'Performance Review' },
   { id: 8, text: 'Public goods' },
@@ -22,7 +22,7 @@ export const ITEMS = [
   { id: 11, text: 'Re-org' },
   { id: 12, text: 'Innovation chasm' },
   { id: 13, text: 'Future' },
-  { id: 14, text: 'Trickle' },
+  { id: 14, text: 'Collaboration' },
   { id: 15, text: 'Revenue' },
   { id: 16, text: 'Compensation' },
   { id: 17, text: 'Equity' },
@@ -36,9 +36,6 @@ export const ITEMS = [
   { id: 25, text: 'VC' }
 ]
 
-// oportunity
-// collaboration
-// go to market
 // celebrate
 // progress
 // masterplan
