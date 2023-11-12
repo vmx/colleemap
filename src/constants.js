@@ -16,22 +16,29 @@ export const ITEMS = [
   { id: 5, text: 'MelodySheep' },
   { id: 6, text: 'PLN' },
   { id: 7, text: 'Performance Review' },
-  { id: 8, text: 'Cats' },
+  { id: 8, text: 'Public goods' },
   { id: 9, text: 'Funding' },
   { id: 10, text: 'PMF' },
   { id: 11, text: 'Re-org' },
   { id: 12, text: 'Innovation chasm' },
   { id: 13, text: 'Future' },
-  { id: 14, text: 'IPLD' },
-  { id: 15, text: 'RIF' },
+  { id: 14, text: 'Trickle' },
+  { id: 15, text: 'Revenue' },
   { id: 16, text: 'Compensation' },
   { id: 17, text: 'Equity' },
   { id: 18, text: 'Wrong decision' },
-  { id: 19, text: 'Honest mistake' },
+  { id: 19, text: 'Transition' },
   { id: 20, text: 'Transparency' },
-  { id: 21, text: 'Board of directors' },
+  { id: 21, text: 'Pitches' },
   { id: 22, text: 'Trust' },
-  { id: 23, text: 'Flat hierarchy' },
+  { id: 23, text: 'Adoption' },
   { id: 24, text: 'Distributed web' },
   { id: 25, text: 'VC' }
 ]
+
+// oportunity
+// collaboration
+// go to market
+// celebrate
+// progress
+// masterplan
